@@ -26,10 +26,10 @@ export function AppSidebar() {
                 isActive={pathname === "/"}
                 asChild
               >
-                <>
+                <div>
                   <LayoutDashboard />
                   Dashboard
-                </>
+                </div>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
@@ -40,10 +40,10 @@ export function AppSidebar() {
                 isActive={pathname.startsWith("/admin/companies")}
                 asChild
               >
-                <>
+                <div>
                   <Building />
                   Empresas
-                </>
+                </div>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
