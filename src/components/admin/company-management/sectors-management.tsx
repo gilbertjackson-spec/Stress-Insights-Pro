@@ -23,7 +23,11 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
 
     const sectorsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        return query(collectionGroup(firestore, 'sectors'), where('__name__', '>', `companies/${companyId}/`), where('__name__', '<', `companies/${companyId0}`));
+        // This query uses a trick to get all sectors for a company.
+        // It queries the 'sectors' collection group for documents whose path is "under" `companies/{companyId}`.
+        const startPath = `companies/${companyId}/`;
+        const endPath = `companies/${companyId}\uf8ff`; // \uf8ff is a very high code point character
+        return query(collectionGroup(firestore, 'sectors'), where('__name__', '>=', startPath), where('__name__', '<', endPath));
     }, [firestore, companyId]);
 
     const { data: units, isLoading: unitsLoading } = useCollection<Unit>(unitsQuery);
