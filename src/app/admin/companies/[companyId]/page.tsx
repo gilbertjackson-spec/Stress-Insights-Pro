@@ -11,8 +11,7 @@ interface CompanyPageProps {
   };
 }
 
-export default function CompanyPage({ params }: CompanyPageProps) {
-  const { companyId } = params;
+export default function CompanyPage({ params: { companyId } }: CompanyPageProps) {
   const firestore = useFirestore();
   const { isUserLoading } = useUser();
 
