@@ -1,9 +1,12 @@
-import MainDashboard from "@/components/dashboard/main-dashboard";
+'use client';
+
+import { redirect } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
-  return (
-    <div className="flex-1 space-y-4 p-4 sm:p-8 pt-6">
-      <MainDashboard />
-    </div>
-  );
+  useEffect(() => {
+    redirect('/admin/companies');
+  }, []);
+
+  return null;
 }
