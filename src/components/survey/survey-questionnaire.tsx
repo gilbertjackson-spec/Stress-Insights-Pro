@@ -104,7 +104,7 @@ export default function SurveyQuestionnaire({ deploymentId, demographics, onComp
                         <div className="space-y-6">
                         {domain.questions.map((question: Question) => (
                             <div key={question.question_id} className="p-4 border rounded-lg bg-secondary/30">
-                                <p className="font-medium mb-4">{question.question_code}: {question.question_text}</p>
+                                <p className="font-medium mb-4">{question.question_text}</p>
                                 <RadioGroup
                                     onValueChange={(value) => handleAnswerChange(question.question_id, value)}
                                     value={answers[question.question_id]}
