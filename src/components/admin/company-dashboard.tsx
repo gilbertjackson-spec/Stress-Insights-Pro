@@ -4,7 +4,7 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { PlusCircle, FileText } from 'lucide-react';
+import { PlusCircle, FileText, Share2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '../ui/badge';
@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { AddSurveyForm } from './add-survey-form';
 import { useState } from 'react';
+import { ShareSurveyDialog } from './share-survey-dialog';
 
 interface Company {
     id: string;
@@ -134,7 +135,8 @@ export default function CompanyDashboard({ company }: CompanyDashboardProps) {
                                             <TableCell>
                                                 <Badge variant={getStatusVariant(dep.status)} className="capitalize">{getStatusLabel(dep.status)}</Badge>
                                             </TableCell>
-                                            <TableCell className="text-right">
+                                            <TableCell className="text-right space-x-2">
+                                                <ShareSurveyDialog deploymentId={dep.id} />
                                                 <Button asChild variant="outline" size="sm">
                                                     <Link href={`/admin/reports/${dep.id}`}>Ver Relatório</Link>
                                                 </Button>
