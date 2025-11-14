@@ -1,9 +1,8 @@
 "use client"
 
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip } from "recharts"
+import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer } from "recharts"
 import type { DomainAnalysis } from "@/lib/types"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
-import { ChartContainer, ChartTooltipContent } from "../ui/chart"
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart"
 
 interface DomainsRadarChartProps {
   data: DomainAnalysis[]
