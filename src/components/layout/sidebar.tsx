@@ -1,5 +1,5 @@
 import { SidebarContent, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, Settings, LifeBuoy, LogOut, BrainCircuit } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, LifeBuoy, LogOut, BrainCircuit, Building } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export function AppSidebar() {
@@ -25,6 +25,15 @@ export function AppSidebar() {
             >
               <LayoutDashboard />
               Dashboard
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Empresas"
+              isActive={pathname.startsWith("/admin/companies")}
+            >
+              <Building />
+              Empresas
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

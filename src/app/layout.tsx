@@ -3,6 +3,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import AppShell from '@/components/layout/app-shell';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'Stress Insights Pro',
@@ -26,9 +27,11 @@ export default function RootLayout({
           'min-h-screen bg-background font-body antialiased',
         )}
       >
-        <AppShell>
-          {children}
-        </AppShell>
+        <FirebaseClientProvider>
+          <AppShell>
+            {children}
+          </AppShell>
+        </FirebaseClientProvider>
         <Toaster />
       </body>
     </html>
