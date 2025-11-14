@@ -6,6 +6,7 @@ import DomainsRadarChart from "../charts/domains-radar-chart";
 import DomainScoreGauge from "../charts/domain-score-gauge";
 import QuestionBreakdown from "./question-breakdown";
 import { Separator } from "../ui/separator";
+import { cn } from "@/lib/utils";
 
 interface FullReportProps {
     data: DashboardData;
@@ -13,9 +14,9 @@ interface FullReportProps {
     deployment: SurveyDeployment;
 }
 
-const ReportSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
-    <section className="break-after-page space-y-4">
-        <h2 className="text-2xl font-bold font-headline text-primary">{title}</h2>
+const ReportSection = ({ title, children, className }: { title?: string, children: React.ReactNode, className?: string }) => (
+    <section className={cn("pdf-section space-y-4", className)}>
+        {title && <h2 className="text-2xl font-bold font-headline text-primary">{title}</h2>}
         <div className="prose prose-sm lg:prose-base dark:prose-invert max-w-none text-foreground/90">
             {children}
         </div>
@@ -27,12 +28,12 @@ const DomainReportSection = ({ domain }: { domain: DomainAnalysis }) => (
      <div className="mt-8 break-inside-avoid">
         <h3 className="text-xl font-semibold font-headline mb-4">{domain.domain_name}</h3>
         <p className="text-sm italic text-muted-foreground">{domain.description}</p>
-        <div className="my-6 p-6 bg-secondary/50 rounded-lg break-inside-avoid">
+        <div className="my-6 p-6 bg-secondary/50 rounded-lg">
             <h4 className="font-bold mb-2">Diagnóstico e Interpretação</h4>
             <p>{getDiagnosticText(domain)}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center break-inside-avoid">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="flex justify-center">
                 <DomainScoreGauge 
                     score={domain.domain_score}
@@ -90,12 +91,14 @@ export default function FullReport({ data, company, deployment }: FullReportProp
                 }
             `}</style>
             
-            <header className="text-center mb-12 break-after-page">
-                <h1 className="text-3xl font-bold font-headline">Relatório da Pesquisa de Indicadores de Estresse</h1>
-                <p className="text-lg text-muted-foreground">{company.name} - {deploymentMonth} de {deploymentYear}</p>
-            </header>
-
             <div className="space-y-12">
+                 <ReportSection className="text-center">
+                    <header>
+                        <h1 className="text-3xl font-bold font-headline">Relatório da Pesquisa de Indicadores de Estresse</h1>
+                        <p className="text-lg text-muted-foreground">{company.name} - {deploymentMonth} de {deploymentYear}</p>
+                    </header>
+                </ReportSection>
+
                 <ReportSection title="Resumo Executivo">
                     <p>
                         Este relatório resumido contém os resultados da pesquisa realizada pela {company.name} durante {deploymentMonth} de {deploymentYear}.
@@ -132,7 +135,7 @@ export default function FullReport({ data, company, deployment }: FullReportProp
                         <li>Organizações que pontuaram <strong>entre a linha vermelha e a linha verde</strong> pontuaram dentro da média de 50% das organizações.</li>
                         <li>Pontuações <strong>acima da linha verde</strong> são melhores do que 75% das organizações.</li>
                     </ul>
-                    <div className="py-8 not-prose break-inside-avoid">
+                    <div className="py-8 not-prose">
                          <Card>
                             <CardHeader>
                                 <CardTitle>Desempenho Geral vs. Benchmarks</CardTitle>

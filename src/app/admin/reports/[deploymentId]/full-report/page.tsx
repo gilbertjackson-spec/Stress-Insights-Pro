@@ -59,48 +59,52 @@ export default function FullReportPage() {
   }, [deploymentId, firestore]);
 
   const handleDownloadPdf = async () => {
-    const reportElement = document.getElementById('full-report-content');
-    if (!reportElement) return;
+    const reportContent = document.getElementById('full-report-content');
+    if (!reportContent) return;
 
     setIsGeneratingPdf(true);
-
+    
     try {
-        const pdf = new jsPDF({
-            orientation: 'p',
-            unit: 'mm',
-            format: 'a4',
-        });
-
-        // The html2canvas library has a bug with its typings, so we have to use 'any' here.
-        // It returns a promise that resolves with the canvas.
-        const canvas = await (html2canvas as any)(reportElement, {
-            scale: 2, // Higher scale for better quality
-            useCORS: true,
-            logging: false, // Suppress logging in console
-            windowWidth: pdf.internal.pageSize.getWidth() * 4, // Simulate wider screen
-        });
-        
-        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        const ratio = imgWidth / imgHeight;
-        let height = pdfWidth / ratio;
-        let position = 0;
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const margin = 15; // 1.5 cm margin
+        const contentWidth = pdfWidth - (margin * 2);
 
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, height);
-        let heightLeft = height - pageHeight;
+        const sections = reportContent.querySelectorAll('.pdf-section') as NodeListOf<HTMLElement>;
 
-        while (heightLeft > 0) {
-            position = -pageHeight * (pdf.internal.pages.length - 1);
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, height);
-            heightLeft -= pageHeight;
+        for (let i = 0; i < sections.length; i++) {
+            const section = sections[i];
+            
+            if (i > 0) {
+              pdf.addPage();
+            }
+
+            const canvas = await (html2canvas as any)(section, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                windowWidth: 1100, // Simulate a wider screen for better layout
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            const ratio = imgWidth / imgHeight;
+            
+            let imgHeightOnPdf = (contentWidth / ratio);
+            let yPosition = margin;
+
+            // If the section is taller than a page, it will be scaled down.
+            // This is a limitation, but better than cutting it.
+            if (imgHeightOnPdf > pdfHeight - (margin * 2)) {
+                imgHeightOnPdf = pdfHeight - (margin * 2);
+            }
+
+            pdf.addImage(imgData, 'PNG', margin, yPosition, contentWidth, imgHeightOnPdf);
         }
 
         pdf.save('Relatorio_Stress_Insights.pdf');
-
     } catch (error) {
         console.error("Error generating PDF:", error);
         setError("Não foi possível gerar o PDF. Tente novamente.");
