@@ -34,7 +34,7 @@ export interface Demographics {
   position: string;
   current_role_time: string;
   age_range: string;
-  health_issue: 'Sim' | 'Não' | 'Prefiro não dizer';
+  health_issue?: 'Sim' | 'Não' | 'Prefiro não dizer';
 }
 
 export interface Answer {
@@ -58,13 +58,14 @@ export type SurveyStatus = 'draft' | 'active' | 'suspended' | 'closed';
 
 export interface SurveyDeployment {
   id: string; // Firestore document ID
-  template_id: number;
-  company_id: number;
-  start_date: string;
-  end_date: string;
+  templateId: string;
+  companyId: string;
+  startDate: string;
+  endDate: string;
   status: SurveyStatus;
   total_invited: number;
-  respondents: Respondent[];
+  totalEmployees: number;
+  respondents?: Respondent[];
 }
 
 export interface Company {

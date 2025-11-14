@@ -1,20 +1,76 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import SurveyDemographicsForm from '@/components/survey/survey-demographics-form';
 import SurveyQuestionnaire from '@/components/survey/survey-questionnaire';
-import type { Demographics } from '@/lib/types';
+import type { Demographics, SurveyDeployment, Unit, Sector, Position } from '@/lib/types';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, doc, getDocs } from 'firebase/firestore';
+import { Loader2 } from 'lucide-react';
 
 type SurveyStep = 'welcome' | 'demographics' | 'questionnaire' | 'completed';
+
+interface OrgStructure {
+  units: Unit[];
+  sectors: Sector[];
+  positions: Position[];
+}
 
 export default function SurveyPage() {
   const params = useParams();
   const deploymentId = params.deploymentId as string;
+  const firestore = useFirestore();
+
   const [step, setStep] = useState<SurveyStep>('welcome');
   const [demographics, setDemographics] = useState<Partial<Demographics>>({});
+  const [orgStructure, setOrgStructure] = useState<OrgStructure | null>(null);
+  const [isLoadingOrg, setIsLoadingOrg] = useState(true);
+
+  const deploymentRef = useMemoFirebase(() => {
+    if (!firestore || !deploymentId) return null;
+    return doc(firestore, 'survey_deployments', deploymentId);
+  }, [firestore, deploymentId]);
+
+  const { data: deployment, isLoading: isLoadingDeployment } = useDoc<SurveyDeployment>(deploymentRef);
+
+  useEffect(() => {
+    if (!deployment || !firestore) return;
+
+    const fetchOrgStructure = async () => {
+      setIsLoadingOrg(true);
+      try {
+        const companyId = deployment.companyId;
+
+        // Fetch Units
+        const unitsRef = collection(firestore, 'companies', companyId, 'units');
+        const unitsSnap = await getDocs(unitsRef);
+        const units = unitsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Unit));
+
+        // Fetch Sectors from all units
+        const sectorsPromises = units.map(unit => 
+            getDocs(collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors'))
+        );
+        const sectorsSnaps = await Promise.all(sectorsPromises);
+        const sectors = sectorsSnaps.flatMap(snap => snap.docs.map(d => ({ ...d.data(), id: d.id } as Sector)));
+
+        // Fetch Positions
+        const positionsRef = collection(firestore, 'companies', companyId, 'positions');
+        const positionsSnap = await getDocs(positionsRef);
+        const positions = positionsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Position));
+
+        setOrgStructure({ units, sectors, positions });
+      } catch (error) {
+        console.error("Failed to fetch organizational structure:", error);
+      } finally {
+        setIsLoadingOrg(false);
+      }
+    };
+
+    fetchOrgStructure();
+  }, [deployment, firestore]);
 
   const handleStart = () => {
     setStep('demographics');
@@ -32,7 +88,15 @@ export default function SurveyPage() {
   const renderStep = () => {
     switch (step) {
       case 'demographics':
-        return <SurveyDemographicsForm onSubmit={handleDemographicsSubmit} />;
+        return (
+          <SurveyDemographicsForm 
+            onSubmit={handleDemographicsSubmit} 
+            isLoading={isLoadingOrg}
+            units={orgStructure?.units || []}
+            sectors={orgStructure?.sectors || []}
+            positions={orgStructure?.positions || []}
+          />
+        );
       case 'questionnaire':
         return (
           <SurveyQuestionnaire 
@@ -57,9 +121,18 @@ export default function SurveyPage() {
                 <CardDescription>Obrigado por participar. Sua opinião é anônima e confidencial.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <p className="text-muted-foreground">Você está prestes a iniciar a pesquisa.</p>
-                <p className="text-sm text-gray-500">ID da Pesquisa: {deploymentId}</p>
-                <Button size="lg" onClick={handleStart}>Iniciar Pesquisa</Button>
+                {isLoadingDeployment ? (
+                    <div className="flex items-center justify-center p-4">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                ) : deployment ? (
+                    <>
+                        <p className="text-muted-foreground">Você está prestes a iniciar a pesquisa.</p>
+                        <Button size="lg" onClick={handleStart}>Iniciar Pesquisa</Button>
+                    </>
+                ) : (
+                    <p className="text-red-500">Pesquisa não encontrada ou inválida.</p>
+                )}
             </CardContent>
           </div>
         );
