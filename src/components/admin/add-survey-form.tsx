@@ -29,6 +29,7 @@ import { collection } from 'firebase/firestore';
 
 
 const formSchema = z.object({
+  name: z.string().min(3, { message: 'O nome da pesquisa deve ter pelo menos 3 caracteres.' }),
   templateId: z.string().min(1, { message: 'Por favor, selecione um template.' }),
   dateRange: z.object({
     from: z.date({
@@ -63,6 +64,7 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+        name: '',
         totalInvited: 0,
         totalEmployees: 0,
     },
@@ -75,6 +77,7 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
     try {
       await addSurveyDeployment(firestore, {
         companyId,
+        name: values.name,
         templateId: values.templateId,
         startDate: values.dateRange.from.toISOString(),
         endDate: values.dateRange.to.toISOString(),
@@ -83,7 +86,7 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
       });
       toast({
         title: 'Pesquisa Criada!',
-        description: `A nova pesquisa foi criada com sucesso e está em modo rascunho.`,
+        description: `A pesquisa "${values.name}" foi criada com sucesso e está em modo rascunho.`,
       });
       form.reset();
       onFinished();
@@ -105,6 +108,20 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome da Pesquisa</FormLabel>
+              <FormControl>
+                <Input placeholder="Ex: Pesquisa de Clima Q3 2025" {...field} />
+              </FormControl>
+              <FormDescription>Dê um nome único para identificar esta pesquisa.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="templateId"
@@ -223,3 +240,4 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
     </Form>
   );
 }
+

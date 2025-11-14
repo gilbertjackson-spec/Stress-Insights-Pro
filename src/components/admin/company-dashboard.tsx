@@ -109,7 +109,7 @@ function DeploymentRow({ deployment, onActionComplete }: DeploymentRowProps) {
     return (
          <>
             <TableRow key={deployment.id}>
-                <TableCell className="font-medium">Indicadores de Estresse HSE 2025</TableCell>
+                <TableCell className="font-medium">{deployment.name}</TableCell>
                 <TableCell>{new Date(deployment.startDate).toLocaleDateString()} - {new Date(deployment.endDate).toLocaleDateString()}</TableCell>
                 <TableCell>
                     {isLoading ? <Skeleton className="h-5 w-16" /> : `${respondentCount ?? 0} / ${deployment.totalInvited}`}
@@ -226,7 +226,7 @@ export default function CompanyDashboard({ company }: { company: Company }) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Template da Pesquisa</TableHead>
+                                    <TableHead>Nome da Pesquisa</TableHead>
                                     <TableHead>Período</TableHead>
                                     <TableHead>Respostas</TableHead>
                                     <TableHead>Status</TableHead>
@@ -263,3 +263,4 @@ export default function CompanyDashboard({ company }: { company: Company }) {
         </div>
     );
 }
+

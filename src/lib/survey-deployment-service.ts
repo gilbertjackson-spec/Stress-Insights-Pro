@@ -6,6 +6,7 @@ import { collection, doc, Firestore, updateDoc, deleteDoc } from 'firebase/fires
 interface NewDeploymentData {
     companyId: string;
     templateId: string;
+    name: string;
     startDate: string;
     endDate: string;
     totalInvited: number;
@@ -13,9 +14,9 @@ interface NewDeploymentData {
 }
 
 export const addSurveyDeployment = async (firestore: Firestore, data: NewDeploymentData) => {
-  const { companyId, templateId, startDate, endDate, totalInvited, totalEmployees } = data;
+  const { companyId, templateId, name, startDate, endDate, totalInvited, totalEmployees } = data;
 
-  if (!companyId || !templateId || !startDate || !endDate ) {
+  if (!companyId || !templateId || !name || !startDate || !endDate ) {
     throw new Error('Dados insuficientes para criar a pesquisa.');
   }
 
@@ -24,6 +25,7 @@ export const addSurveyDeployment = async (firestore: Firestore, data: NewDeploym
   const docData = {
     companyId,
     templateId,
+    name,
     startDate,
     endDate,
     totalInvited,
@@ -57,3 +59,4 @@ export const deleteSurveyDeployment = async (firestore: Firestore, deploymentId:
     const deploymentRef = doc(firestore, 'survey_deployments', deploymentId);
     return await deleteDoc(deploymentRef);
 };
+

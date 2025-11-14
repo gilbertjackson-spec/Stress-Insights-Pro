@@ -220,6 +220,10 @@
           "description": "Unique identifier for the survey deployment.",
           "format": "uuid"
         },
+        "name": {
+          "type": "string",
+          "description": "A custom name for the survey deployment (e.g., 'Pesquisa Anual 2025')."
+        },
         "templateId": {
           "type": "string",
           "description": "Reference to SurveyTemplate. (Relationship: SurveyTemplate 1:N SurveyDeployment)"
@@ -249,6 +253,7 @@
       },
       "required": [
         "id",
+        "name",
         "templateId",
         "companyId",
         "startDate",
@@ -344,46 +349,64 @@
   },
   "firestore": {
     "/companies/{companyId}": {
-      "schema": "Company",
+      "schema": {
+        "$ref": "#/entities/Company"
+      },
       "description": "Stores company information. Only SuperAdmins can create or update company documents. ClientAdmins can read their own company document."
     },
     "/companies/{companyId}/units/{unitId}": {
-      "schema": "Unit",
+      "schema": {
+        "$ref": "#/entities/Unit"
+      },
       "description": "Stores unit information within a company. ClientAdmins can manage units within their company."
     },
     "/companies/{companyId}/units/{unitId}/sectors/{sectorId}": {
-      "schema": "Sector",
+      "schema": {
+        "$ref": "#/entities/Sector"
+      },
       "description": "Stores sector information within a unit. ClientAdmins can manage sectors within their company."
     },
     "/companies/{companyId}/positions/{positionId}": {
-      "schema": "Position",
+      "schema": {
+        "$ref": "#/entities/Position"
+      },
       "description": "Stores job position information for a company. ClientAdmins can manage positions within their company."
     },
     "/survey_templates/{templateId}": {
-      "schema": "SurveyTemplate",
+      "schema": {
+        "$ref": "#/entities/SurveyTemplate"
+      },
       "description": "Stores survey templates. Only SuperAdmins can manage survey templates."
     },
     "/survey_templates/{templateId}/domains/{domainId}": {
-      "schema": "Domain",
+      "schema": {
+        "$ref": "#/entities/Domain"
+      },
       "description": "Stores domains within a survey template. Only SuperAdmins can manage domains."
     },
     "/survey_templates/{templateId}/domains/{domainId}/questions/{questionId}": {
-      "schema": "Question",
+      "schema": {
+        "$ref": "#/entities/Question"
+      },
       "description": "Stores questions within a domain. Only SuperAdmins can manage questions."
     },
     "/survey_deployments/{deploymentId}": {
-      "schema": "SurveyDeployment",
+      "schema": {
+        "$ref": "#/entities/SurveyDeployment"
+      },
       "description": "Stores survey deployments for companies. Includes denormalized 'companyId' for authorization independence. ClientAdmins can manage deployments for their company."
     },
     "/survey_deployments/{deploymentId}/respondents/{respondentId}": {
-      "schema": "SurveyRespondent",
+      "schema": {
+        "$ref": "#/entities/SurveyRespondent"
+      },
       "description": "Stores anonymous survey respondents. Includes denormalized 'deploymentId' for authorization independence. The token field guarantees security of the anonymous access link."
     },
     "/survey_deployments/{deploymentId}/respondents/{respondentId}/answers/{answerId}": {
-      "schema": "Answer",
+      "schema": {
+        "$ref": "#/entities/Answer"
+      },
       "description": "Stores answers to survey questions. Includes denormalized 'respondentId' and implicitly 'deploymentId' for authorization independence."
     }
   }
 }
-
-    

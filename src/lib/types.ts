@@ -60,6 +60,7 @@ export type SurveyStatus = 'draft' | 'active' | 'suspended' | 'closed' | 'archiv
 
 export interface SurveyDeployment {
   id: string; // Firestore document ID
+  name: string; // Custom name for the deployment
   templateId: string;
   companyId: string;
   startDate: string;
@@ -139,3 +140,4 @@ export interface DashboardData {
     current_role_times: string[];
   }
 }
+
