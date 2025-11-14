@@ -1,16 +1,16 @@
 export type Sentiment = 'Favorável' | 'Neutro' | 'Desfavorável';
 
 export interface Question {
-  id: number; // Renamed from question_id
-  domainId: number; // Renamed from domain_id
+  id: string; 
+  domainId: string;
   questionText: string;
   questionCode: string;
   isInvertedScore: boolean;
 }
 
 export interface Domain {
-  id: number; // Renamed from domain_id
-  templateId: number; // Renamed from template_id
+  id: string;
+  templateId: string;
   name: string;
   benchmarkPrivateSector: number;
   percentile25: number;
@@ -18,12 +18,12 @@ export interface Domain {
   textResultLow: string;
   textResultMedium: string;
   textResultHigh: string;
-  description: string;
+  descriptionText: string; // Renamed from description
   questions: Question[];
 }
 
 export interface SurveyTemplate {
-  id: number; // Renamed from template_id
+  id: string;
   name: string;
   domains: Domain[];
 }
@@ -39,7 +39,7 @@ export interface Demographics {
 
 export interface Answer {
   id: string; // Firestore document id
-  questionId: number;
+  questionId: string;
   rawResponse: string;
   calculatedScore: number;
   sentiment: Sentiment;
@@ -96,7 +96,7 @@ export interface Position {
 // Analysis Types
 
 export interface QuestionAnalysis {
-  question_id: number;
+  question_id: string;
   question_code: string;
   question_text: string;
   average_score: number;
@@ -111,7 +111,7 @@ export interface QuestionAnalysis {
 }
 
 export interface DomainAnalysis {
-  domain_id: number;
+  domain_id: string;
   domain_name: string;
   domain_score: number;
   benchmark_private_sector: number;

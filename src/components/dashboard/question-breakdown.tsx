@@ -6,11 +6,9 @@ import { cn, getScoreColorClass } from "@/lib/utils";
 
 interface QuestionBreakdownProps {
     questionAnalysis: QuestionAnalysis;
-    p25: number;
-    p75: number;
 }
 
-export default function QuestionBreakdown({ questionAnalysis, p25, p75 }: QuestionBreakdownProps) {
+export default function QuestionBreakdown({ questionAnalysis }: QuestionBreakdownProps) {
 
     return (
         <div className="p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow">
@@ -31,7 +29,7 @@ export default function QuestionBreakdown({ questionAnalysis, p25, p75 }: Questi
                     </div>
                     <div className="flex flex-col items-end w-16">
                         <span className="text-xs text-muted-foreground">Média</span>
-                        <span className={cn("text-2xl font-bold", getScoreColorClass(questionAnalysis.average_score, p25, p75))}>
+                        <span className={cn("text-2xl font-bold", getScoreColorClass(questionAnalysis.average_score))}>
                             {questionAnalysis.average_score.toFixed(2)}
                         </span>
                     </div>

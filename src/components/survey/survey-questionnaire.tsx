@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { Demographics, Domain, Question } from '@/lib/types';
-import { getMockSurveyTemplate } from '@/lib/mock-data-fortesting';
+import { getMockSurveyTemplate } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -21,7 +21,7 @@ interface SurveyQuestionnaireProps {
   onComplete: () => void;
 }
 
-type AnswersState = Record<number, string>; // question_id: raw_response
+type AnswersState = Record<string, string>; // question_id: raw_response
 
 export default function SurveyQuestionnaire({ deploymentId, demographics, onComplete }: SurveyQuestionnaireProps) {
   const firestore = useFirestore();
@@ -46,7 +46,7 @@ export default function SurveyQuestionnaire({ deploymentId, demographics, onComp
     }
   }, [api]);
 
-  const handleAnswerChange = (questionId: number, value: string) => {
+  const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
   

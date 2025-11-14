@@ -7,7 +7,7 @@ import { LIKERT_SCALE } from "./constants";
 interface AnswerSubmission {
     deploymentId: string;
     demographics: Partial<Demographics>;
-    answers: Record<number, string>; // question_id -> raw_response
+    answers: Record<string, string>; // question_id -> raw_response
     template: SurveyTemplate;
 }
 

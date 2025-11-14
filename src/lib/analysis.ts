@@ -50,7 +50,7 @@ function filterRespondents(respondents: Respondent[], filters: Filters): Respond
   });
 }
 
-function analyzeQuestion(questionId: number, respondents: Respondent[]): { average_score: number; sentiment_distribution: any } {
+function analyzeQuestion(questionId: string, respondents: Respondent[]): { average_score: number; sentiment_distribution: any } {
   const relevantAnswers = respondents.flatMap(r => 
       (r.answers || []).filter(a => a.questionId === questionId)
   );
@@ -122,7 +122,7 @@ function analyzeDomain(domain: Domain, respondents: Respondent[]): DomainAnalysi
     text_result_low: domain.textResultLow,
     text_result_medium: domain.textResultMedium,
     text_result_high: domain.textResultHigh,
-    description: domain.description,
+    description: domain.descriptionText,
     strong_point,
     weak_point,
     questions_analysis,

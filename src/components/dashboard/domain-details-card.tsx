@@ -42,9 +42,7 @@ export default function DomainDetailsCard({ domain }: DomainDetailsCardProps) {
                     {domain.questions_analysis.map(qa => (
                         <QuestionBreakdown 
                             key={qa.question_id} 
-                            questionAnalysis={qa} 
-                            p25={domain.percentile_25}
-                            p75={domain.percentile_75}
+                            questionAnalysis={qa}
                         />
                     ))}
                 </div>
