@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Demographics, Domain, Question } from '@/lib/types';
 import { getMockSurveyTemplate } from '@/lib/mock-data-fortesting';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,14 @@ export default function SurveyQuestionnaire({ deploymentId, demographics, onComp
   useEffect(() => {
     if (!api) return;
     setTotalSlides(api.scrollSnapList().length);
-    api.on('select', () => setCurrentSlide(api.selectedScrollSnap()));
+    const handleSelect = () => {
+        setCurrentSlide(api.selectedScrollSnap());
+    };
+    api.on('select', handleSelect);
+    
+    return () => {
+        api.off('select', handleSelect);
+    }
   }, [api]);
 
   const handleAnswerChange = (questionId: number, value: string) => {
@@ -84,6 +91,11 @@ export default function SurveyQuestionnaire({ deploymentId, demographics, onComp
     }
   };
 
+  const scrollPrev = useCallback(() => api?.scrollPrev(), [api]);
+  const scrollNext = useCallback(() => api?.scrollNext(), [api]);
+
+  const isLastSlide = currentSlide === totalSlides - 1;
+
   return (
     <div>
         <CardHeader>
@@ -124,16 +136,24 @@ export default function SurveyQuestionnaire({ deploymentId, demographics, onComp
                 </CarouselItem>
             ))}
             </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
+            {/* The side arrows can be confusing with the bottom buttons, hiding them on mobile for a cleaner experience */}
+            <CarouselPrevious className="hidden md:flex" />
+            <CarouselNext className="hidden md:flex" />
         </Carousel>
         
         <div className="flex justify-between items-center p-6">
             <p className="text-sm text-muted-foreground">Domínio {currentSlide + 1} de {totalSlides}</p>
-            <Button onClick={handleSubmit} disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSubmitting ? 'Enviando...' : 'Finalizar e Enviar Respostas'}
-            </Button>
+            <div className='flex gap-2'>
+                <Button variant="outline" onClick={scrollPrev} disabled={currentSlide === 0}>Anterior</Button>
+                {isLastSlide ? (
+                    <Button onClick={handleSubmit} disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isSubmitting ? 'Enviando...' : 'Finalizar e Enviar Respostas'}
+                    </Button>
+                ) : (
+                    <Button onClick={scrollNext}>Próximo</Button>
+                )}
+            </div>
         </div>
     </div>
   );
