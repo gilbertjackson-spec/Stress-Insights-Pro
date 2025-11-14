@@ -43,12 +43,16 @@ export default function SurveyDemographicsForm({ onSubmit, isLoading, units, sec
     resolver: zodResolver(formSchema),
   });
 
+  // Use a map to ensure unique options by name
+  const uniqueSectors = [...new Map(sectors.map(item => [item.name, item])).values()];
+  const uniquePositions = [...new Map(positions.map(item => [item.name, item])).values()];
+
   const DEMO_FIELDS = [
-    { name: 'unit', label: 'Unidade', options: units.map(u => u.name) },
-    { name: 'sector', label: 'Setor', options: sectors.map(s => s.name) },
-    { name: 'position', label: 'Cargo', options: positions.map(p => p.name) },
-    { name: 'age_range', label: 'Faixa Etária', options: DEMO_OPTIONS.age_ranges },
-    { name: 'current_role_time', label: 'Tempo no Cargo Atual', options: DEMO_OPTIONS.current_role_times },
+    { name: 'unit', label: 'Unidade', options: units },
+    { name: 'sector', label: 'Setor', options: uniqueSectors },
+    { name: 'position', label: 'Cargo', options: uniquePositions },
+    { name: 'age_range', label: 'Faixa Etária', options: DEMO_OPTIONS.age_ranges.map(o => ({id: o, name: o})) },
+    { name: 'current_role_time', label: 'Tempo no Cargo Atual', options: DEMO_OPTIONS.current_role_times.map(o => ({id: o, name: o})) },
   ] as const;
 
   return (
@@ -83,7 +87,7 @@ export default function SurveyDemographicsForm({ onSubmit, isLoading, units, sec
                                         </FormControl>
                                         <SelectContent>
                                         {fieldInfo.options.map(option => (
-                                            <SelectItem key={option} value={option}>{option}</SelectItem>
+                                            <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
                                         ))}
                                         </SelectContent>
                                     </Select>
