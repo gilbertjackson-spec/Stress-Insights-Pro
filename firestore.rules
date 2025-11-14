@@ -76,17 +76,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows listing deployments only when filtered by companyId.
-     * Allows read/write on individual documents for any signed-in user.
+     * @description Allows read/write on individual documents for any signed-in user.
+     * This also implicitly allows querying the collection.
      */
     match /survey_deployments/{deploymentId} {
-       // This rule allows a client to query the collection, but only if they
-       // include a `where('companyId', '==', id)` filter in their query.
-       // This prevents listing all documents from all companies.
-      allow list: if isSignedIn() && request.query.filters.keys().hasAny(['companyId']);
-      allow get, write: if isSignedIn();
-      // Explicitly deny delete for now to prevent accidental data loss.
-      allow delete: if false; 
+      allow read, write: if isSignedIn();
     }
 
     /**
