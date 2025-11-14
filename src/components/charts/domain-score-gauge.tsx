@@ -24,29 +24,32 @@ export default function DomainScoreGauge({ score, p25, p75, benchmark }: DomainS
     return (
         <div className="w-full max-w-sm space-y-4">
             <div className="text-center">
-                <p className="text-sm text-muted-foreground">Seu Score</p>
+                <p className="text-sm text-muted-foreground">Pontuação do Domínio</p>
                 <p className={`text-5xl font-bold ${getScoreColor(score).replace('bg-','text-')}`}>{score.toFixed(2)}</p>
             </div>
-            <div className="relative w-full h-4 bg-muted rounded-full">
+            <div className="relative w-full h-3 bg-muted rounded-full">
                 <div className="absolute h-full bg-red-200 dark:bg-red-800/50 rounded-l-full" style={{ width: `${p25Percent}%` }}></div>
                 <div className="absolute h-full bg-yellow-200 dark:bg-yellow-800/50" style={{ left: `${p25Percent}%`, width: `${p75Percent - p25Percent}%` }}></div>
                 <div className="absolute h-full bg-green-200 dark:bg-green-800/50 rounded-r-full" style={{ left: `${p75Percent}%`, width: `${100 - p75Percent}%` }}></div>
                 
                 {/* Your Score Marker */}
-                <div className="absolute top-0 h-4 w-1 bg-primary rounded-full transform -translate-x-1/2" style={{ left: `${scorePercent}%` }}>
-                    <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                        <Badge variant="default" className="text-xs">{score.toFixed(2)}</Badge>
-                    </div>
-                </div>
+                <div 
+                    className="absolute -top-1.5 h-6 w-1.5 rounded-full border-2 border-white dark:border-gray-800" 
+                    style={{ 
+                        left: `${scorePercent}%`,
+                        backgroundColor: 'hsl(var(--primary))',
+                        transform: 'translateX(-50%)'
+                    }}
+                />
 
                 {/* Benchmark Marker */}
                 <div className="absolute -bottom-2 h-4 w-0.5 bg-foreground/50" style={{ left: `${benchmarkPercent}%` }}>
                      <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2">
-                        <p className="text-xs text-muted-foreground whitespace-nowrap">Setor Privado</p>
+                        <p className="text-xs text-muted-foreground whitespace-nowrap">Benchmark</p>
                      </div>
                 </div>
             </div>
-            <div className="flex justify-between text-xs text-muted-foreground px-1">
+            <div className="flex justify-between text-xs text-muted-foreground px-1 pt-2">
                 <span>0</span>
                 <span>{p25.toFixed(2)} (p25)</span>
                 <span>{p75.toFixed(2)} (p75)</span>
