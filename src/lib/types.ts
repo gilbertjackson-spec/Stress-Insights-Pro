@@ -53,13 +53,15 @@ export interface Respondent {
   answers: Answer[];
 }
 
+export type SurveyStatus = 'draft' | 'active' | 'suspended' | 'closed';
+
 export interface SurveyDeployment {
   deployment_id: number;
   template_id: number;
   company_id: number;
   start_date: string;
   end_date: string;
-  status: 'draft' | 'active' | 'closed';
+  status: SurveyStatus;
   total_invited: number;
   respondents: Respondent[];
 }

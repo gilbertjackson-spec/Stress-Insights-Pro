@@ -4,15 +4,16 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { PlusCircle, FileText, Share2 } from 'lucide-react';
+import { PlusCircle, FileText } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Skeleton } from '../ui/skeleton';
-import { Badge } from '../ui/badge';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { AddSurveyForm } from './add-survey-form';
 import { useState } from 'react';
 import { ShareSurveyDialog } from './share-survey-dialog';
+import type { SurveyStatus } from '@/lib/types';
+import StatusMenu from './status-menu';
 
 interface Company {
     id: string;
@@ -24,7 +25,7 @@ interface SurveyDeployment {
     templateId: string;
     startDate: string;
     endDate: string;
-    status: 'draft' | 'active' | 'closed';
+    status: SurveyStatus;
 }
 
 interface CompanyDashboardProps {
@@ -44,32 +45,6 @@ export default function CompanyDashboard({ company }: CompanyDashboardProps) {
     }, [firestore, company.id]);
 
     const { data: deployments, isLoading } = useCollection(deploymentsQuery);
-
-    const getStatusVariant = (status: SurveyDeployment['status']) => {
-        switch (status) {
-            case 'active':
-                return 'default';
-            case 'closed':
-                return 'secondary';
-            case 'draft':
-                return 'outline';
-            default:
-                return 'secondary';
-        }
-    };
-
-    const getStatusLabel = (status: SurveyDeployment['status']) => {
-        switch (status) {
-            case 'active':
-                return 'Ativa';
-            case 'closed':
-                return 'Fechada';
-            case 'draft':
-                return 'Rascunho';
-            default:
-                return status;
-        }
-    };
 
     return (
         <div className="space-y-6">
@@ -123,7 +98,7 @@ export default function CompanyDashboard({ company }: CompanyDashboardProps) {
                                         <TableRow key={index}>
                                             <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                                             <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-                                            <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                            <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                                             <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
                                         </TableRow>
                                     ))
@@ -133,7 +108,7 @@ export default function CompanyDashboard({ company }: CompanyDashboardProps) {
                                             <TableCell className="font-medium">Indicadores de Estresse HSE 2025</TableCell>
                                             <TableCell>{new Date(dep.startDate).toLocaleDateString()} - {new Date(dep.endDate).toLocaleDateString()}</TableCell>
                                             <TableCell>
-                                                <Badge variant={getStatusVariant(dep.status)} className="capitalize">{getStatusLabel(dep.status)}</Badge>
+                                                <StatusMenu deploymentId={dep.id} currentStatus={dep.status} />
                                             </TableCell>
                                             <TableCell className="text-right space-x-2">
                                                 <ShareSurveyDialog deploymentId={dep.id} />

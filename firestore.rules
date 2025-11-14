@@ -92,7 +92,8 @@ service cloud.firestore {
      */
     match /survey_deployments/{deploymentId} {
       allow read, create: if isSignedIn();
-      allow update, delete: if false; // Keep update/delete restricted for now
+      allow update: if isSignedIn();
+      allow delete: if false; // Keep delete restricted for now
     }
 
     /**
