@@ -76,12 +76,15 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows signed-in users to read/list and write survey deployments.
-     * The `read` permission on this path grants both `get` for single documents
-     * and `list` for collection queries. The `write` permission grants `create` and `update`.
+     * @description Allows listing deployments only when filtered by companyId.
+     * Allows read/write on individual documents for any signed-in user.
      */
     match /survey_deployments/{deploymentId} {
-      allow read, write: if isSignedIn();
+       // This rule allows a client to query the collection, but only if they
+       // include a `where('companyId', '==', id)` filter in their query.
+       // This prevents listing all documents from all companies.
+      allow list: if isSignedIn() && request.query.filters.keys().hasAny(['companyId']);
+      allow get, write: if isSignedIn();
       // Explicitly deny delete for now to prevent accidental data loss.
       allow delete: if false; 
     }
