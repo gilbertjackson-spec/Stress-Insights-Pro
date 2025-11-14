@@ -81,9 +81,12 @@ service cloud.firestore {
      * for the admin dashboard functionality.
      */
     match /survey_deployments/{deploymentId} {
-      // Allow read/list for signed in users. create/update are also allowed.
-      allow read, create, update: if isSignedIn();
-      allow delete: if false; // Keep delete restricted for now
+      // Allow read/create/update for signed in users on individual documents.
+      allow get, create, update: if isSignedIn();
+      // Allow listing documents for signed in users.
+      allow list: if isSignedIn();
+      // Keep delete restricted for now.
+      allow delete: if false; 
     }
 
     /**
