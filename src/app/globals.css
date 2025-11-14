@@ -88,7 +88,8 @@
   }
   @media print {
     body {
-        background-color: white;
+        background-color: white !important;
+        font-size: 11pt;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
@@ -106,13 +107,18 @@
             box-shadow: none !important;
         }
     }
+    .print\:border-none {
+      @media print {
+        border: none !important;
+      }
+    }
     .break-after-page {
         break-after: page;
     }
+    .break-before-page {
+        break-before: page;
+    }
     .break-inside-avoid {
         break-inside: avoid;
-    }
-    .break-after-avoid-page {
-      break-after: avoid-page;
     }
 }

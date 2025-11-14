@@ -14,7 +14,7 @@ interface FullReportProps {
 }
 
 const ReportSection = ({ title, children, className }: { title?: string, children: React.ReactNode, className?: string }) => (
-    <section className={`break-after-page ${className}`}>
+    <section className={`py-4 ${className}`}>
         {title && <h2 className="text-2xl font-bold font-headline text-primary mb-6">{title}</h2>}
         <div className="prose prose-sm lg:prose-base dark:prose-invert max-w-none text-foreground/90">
             {children}
@@ -26,12 +26,12 @@ const DomainReportSection = ({ domain }: { domain: DomainAnalysis }) => (
      <div className="mt-8 break-inside-avoid">
         <h3 className="text-xl font-semibold font-headline mb-4">{domain.domain_name}</h3>
         <p className="text-sm italic text-muted-foreground">{domain.description}</p>
-        <div className="my-6 p-6 bg-secondary/50 rounded-lg">
+        <div className="my-6 p-6 bg-secondary/50 rounded-lg break-inside-avoid">
             <h4 className="font-bold mb-2">Diagnóstico e Interpretação</h4>
             <p>{getDiagnosticText(domain)}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center break-inside-avoid">
             <div className="flex justify-center">
                 <DomainScoreGauge 
                     score={domain.domain_score}
@@ -40,7 +40,7 @@ const DomainReportSection = ({ domain }: { domain: DomainAnalysis }) => (
                     benchmark={domain.benchmark_private_sector}
                 />
             </div>
-            <div className="break-inside-avoid">
+            <div>
                 <h4 className="font-bold mb-2 text-center">Análise por Pergunta</h4>
                 <div className="space-y-2">
                 {domain.questions_analysis.map(qa => (
@@ -49,7 +49,7 @@ const DomainReportSection = ({ domain }: { domain: DomainAnalysis }) => (
                 </div>
             </div>
         </div>
-        <Separator className="my-8" />
+        <Separator className="my-8 print:hidden" />
      </div>
 );
 
@@ -68,9 +68,9 @@ export default function FullReport({ data, company, deployment }: FullReportProp
     const deploymentMonth = new Date(deployment.startDate).toLocaleString('default', { month: 'long' });
 
     return (
-        <main className="max-w-4xl mx-auto p-4 sm:p-8 bg-card shadow-lg print:shadow-none">
-            <div className="space-y-12">
-                 <ReportSection className="text-center break-after-avoid-page">
+        <main className="max-w-4xl mx-auto p-4 sm:p-8 bg-card shadow-lg print:shadow-none print:border-none">
+            <div className="space-y-4">
+                 <ReportSection className="text-center">
                     <header>
                         <h1 className="text-3xl font-bold font-headline">Relatório da Pesquisa de Indicadores de Estresse</h1>
                         <p className="text-lg text-muted-foreground">{company.name} - {deploymentMonth} de {deploymentYear}</p>
@@ -92,7 +92,7 @@ export default function FullReport({ data, company, deployment }: FullReportProp
                     </p>
                 </ReportSection>
 
-                <ReportSection title="Como Seus Resultados São Apresentados">
+                <ReportSection title="Como Seus Resultados São Apresentados" className="break-before-page">
                     <p>
                         O sistema de pontuação usado na pesquisa foi baseado em uma escala de 5 pontos. O sistema de pontuação é complexo, pois algumas escalas e itens são pontuados inversamente na ferramenta por razões psicométricas. Para apoiar sua interpretação, os resultados foram agrupados em três categorias: respostas favoráveis, neutras e desfavoráveis, mostradas como porcentagens dos respondentes.
                     </p>
@@ -104,7 +104,7 @@ export default function FullReport({ data, company, deployment }: FullReportProp
                     </p>
                 </ReportSection>
                 
-                <ReportSection title="Principais Descobertas">
+                <ReportSection title="Principais Descobertas" className="break-before-page">
                     <p>
                         O gráfico a seguir mostra as pontuações médias da empresa para cada um dos domínios cobertos pela pesquisa, em comparação com os benchmarks para o setor privado. A linha vermelha indica a pontuação do 25º percentil e a linha verde indica a pontuação do 75º percentil para a amostra comparativa.
                     </p>
@@ -114,7 +114,7 @@ export default function FullReport({ data, company, deployment }: FullReportProp
                         <li>Pontuações <strong>acima da linha verde</strong> são melhores do que 75% das organizações.</li>
                     </ul>
                     <div className="py-8 not-prose break-inside-avoid">
-                         <Card>
+                         <Card className="print:shadow-none print:border-none">
                             <CardHeader>
                                 <CardTitle>Desempenho Geral vs. Benchmarks</CardTitle>
                                 <CardDescription>Pontuação média por domínio</CardDescription>
@@ -126,7 +126,7 @@ export default function FullReport({ data, company, deployment }: FullReportProp
                     </div>
                 </ReportSection>
 
-                <ReportSection title="Análise Detalhada por Domínio">
+                <ReportSection title="Análise Detalhada por Domínio" className="break-before-page">
                     {data.domain_analysis.map(domain => (
                         <DomainReportSection key={domain.domain_id} domain={domain} />
                     ))}
