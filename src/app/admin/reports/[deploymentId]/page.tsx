@@ -6,9 +6,11 @@ import { doc } from "firebase/firestore";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useParams } from "next/navigation";
 
-export default function ReportPage({ params }: { params: { deploymentId: string } }) {
-  const { deploymentId } = params;
+export default function ReportPage() {
+  const params = useParams();
+  const deploymentId = params.deploymentId as string;
   const firestore = useFirestore();
 
   const deploymentRef = useMemoFirebase(() => {
