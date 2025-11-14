@@ -22,10 +22,10 @@ export function AppSidebar() {
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="/" passHref>
+            <Link href="/dashboard" passHref>
               <SidebarMenuButton
                 tooltip="Dashboard"
-                isActive={pathname === "/"}
+                isActive={pathname.startsWith("/dashboard")}
                 asChild
               >
                 <div>
