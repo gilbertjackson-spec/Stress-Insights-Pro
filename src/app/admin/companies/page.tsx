@@ -1,18 +1,23 @@
 'use client';
 
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import CompaniesTable from '@/components/admin/companies-table';
 
 export default function CompaniesPage() {
   const firestore = useFirestore();
+  const { isUserLoading } = useUser();
 
   const companiesRef = useMemoFirebase(() => {
-    if (!firestore) return null;
+    // Wait until firebase is initialized and user is loaded
+    if (!firestore || isUserLoading) return null;
     return collection(firestore, 'companies');
-  }, [firestore]);
+  }, [firestore, isUserLoading]);
 
-  const { data: companies, isLoading } = useCollection(companiesRef);
+  const { data: companies, isLoading: areCompaniesLoading } = useCollection(companiesRef);
+  
+  // Combine user loading and collection loading states
+  const isLoading = isUserLoading || areCompaniesLoading;
 
   return (
     <div className="p-4 sm:p-8 pt-6">
