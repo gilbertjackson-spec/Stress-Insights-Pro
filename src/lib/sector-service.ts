@@ -1,7 +1,7 @@
 'use client';
 
-import { addDocumentNonBlocking } from '@/firebase';
-import { collection, Firestore } from 'firebase/firestore';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { collection, doc, Firestore } from 'firebase/firestore';
 
 export const addSector = async (firestore: Firestore, companyId: string, unitId: string, name: string) => {
   if (!companyId || !unitId || !name) {
@@ -17,4 +17,13 @@ export const addSector = async (firestore: Firestore, companyId: string, unitId:
 
   const docRef = await docRefPromise;
   return docRef;
+};
+
+
+export const deleteSector = async (firestore: Firestore, companyId: string, unitId: string, sectorId: string) => {
+    if (!companyId || !unitId || !sectorId) {
+        throw new Error('ID da empresa, ID da unidade e ID do setor são obrigatórios para excluir.');
+    }
+    const sectorRef = doc(firestore, 'companies', companyId, 'units', unitId, 'sectors', sectorId);
+    deleteDocumentNonBlocking(sectorRef);
 };

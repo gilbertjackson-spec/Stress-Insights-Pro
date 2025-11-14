@@ -1,7 +1,7 @@
 'use client';
 
-import { addDocumentNonBlocking } from '@/firebase';
-import { collection, Firestore } from 'firebase/firestore';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { collection, doc, Firestore } from 'firebase/firestore';
 
 export const addPosition = async (firestore: Firestore, companyId: string, name: string) => {
   if (!companyId || !name) {
@@ -17,4 +17,12 @@ export const addPosition = async (firestore: Firestore, companyId: string, name:
 
   const docRef = await docRefPromise;
   return docRef;
+};
+
+export const deletePosition = async (firestore: Firestore, companyId: string, positionId: string) => {
+    if (!companyId || !positionId) {
+        throw new Error('ID da empresa e ID do cargo são obrigatórios para excluir.');
+    }
+    const positionRef = doc(firestore, 'companies', companyId, 'positions', positionId);
+    deleteDocumentNonBlocking(positionRef);
 };
