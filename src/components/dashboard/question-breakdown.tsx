@@ -2,18 +2,13 @@
 
 import type { QuestionAnalysis } from "@/lib/types";
 import SentimentBarChart from "../charts/sentiment-bar-chart";
-import { cn } from "@/lib/utils";
+import { cn, getScoreColorClass } from "@/lib/utils";
 
 interface QuestionBreakdownProps {
     questionAnalysis: QuestionAnalysis;
 }
 
 export default function QuestionBreakdown({ questionAnalysis }: QuestionBreakdownProps) {
-    const getScoreColor = (score: number) => {
-        if (score < 3) return "text-red-500";
-        if (score < 4) return "text-yellow-500";
-        return "text-green-500";
-    };
 
     return (
         <div className="p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow">
@@ -34,7 +29,7 @@ export default function QuestionBreakdown({ questionAnalysis }: QuestionBreakdow
                     </div>
                     <div className="flex flex-col items-end w-16">
                         <span className="text-xs text-muted-foreground">Média</span>
-                        <span className={cn("text-2xl font-bold", getScoreColor(questionAnalysis.average_score))}>
+                        <span className={cn("text-2xl font-bold", getScoreColorClass(questionAnalysis.average_score))}>
                             {questionAnalysis.average_score.toFixed(2)}
                         </span>
                     </div>

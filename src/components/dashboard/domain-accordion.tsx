@@ -4,7 +4,7 @@ import type { DashboardData } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 import { DOMAIN_ICONS } from "@/lib/constants";
 import DomainDetailsCard from "./domain-details-card";
-import { cn } from "@/lib/utils";
+import { cn, getScoreColorClass } from "@/lib/utils";
 
 interface DomainAccordionProps {
     data: DashboardData;
@@ -12,12 +12,6 @@ interface DomainAccordionProps {
 }
 
 export default function DomainAccordion({ data, isLoading }: DomainAccordionProps) {
-    
-    const getScoreColor = (score: number) => {
-        if (score < 3) return "text-red-500";
-        if (score < 4) return "text-yellow-500";
-        return "text-green-500";
-    };
     
     if (isLoading) {
         return (
@@ -43,7 +37,7 @@ export default function DomainAccordion({ data, isLoading }: DomainAccordionProp
                                     <span className="text-base font-semibold font-headline">{domain.domain_name}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <span className={cn("text-xl font-bold", getScoreColor(domain.domain_score))}>
+                                    <span className={cn("text-xl font-bold", getScoreColorClass(domain.domain_score))}>
                                         {domain.domain_score.toFixed(2)}
                                     </span>
                                 </div>

@@ -44,22 +44,21 @@ export default function SurveyPage() {
       try {
         const companyId = deployment.companyId;
 
-        // Fetch Units
-        const unitsRef = collection(firestore, 'companies', companyId, 'units');
-        const unitsSnap = await getDocs(unitsRef);
+        // Fetch all organizational structure data in parallel
+        const [unitsSnap, positionsSnap] = await Promise.all([
+          getDocs(collection(firestore, 'companies', companyId, 'units')),
+          getDocs(collection(firestore, 'companies', companyId, 'positions'))
+        ]);
+        
         const units = unitsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Unit));
+        const positions = positionsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Position));
 
-        // Fetch Sectors from all units
+        // Fetch Sectors from all units in parallel
         const sectorsPromises = units.map(unit => 
             getDocs(collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors'))
         );
         const sectorsSnaps = await Promise.all(sectorsPromises);
         const sectors = sectorsSnaps.flatMap(snap => snap.docs.map(d => ({ ...d.data(), id: d.id } as Sector)));
-
-        // Fetch Positions
-        const positionsRef = collection(firestore, 'companies', companyId, 'positions');
-        const positionsSnap = await getDocs(positionsRef);
-        const positions = positionsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Position));
 
         setOrgStructure({ units, sectors, positions });
       } catch (error) {
@@ -71,6 +70,7 @@ export default function SurveyPage() {
 
     fetchOrgStructure();
   }, [deployment, firestore]);
+
 
   const handleStart = () => {
     setStep('demographics');
