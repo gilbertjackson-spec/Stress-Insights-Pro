@@ -4,25 +4,21 @@ import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "./sidebar";
 import AppHeader from "./header";
 import React, { useState, useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isClient, setIsClient] = useState(false);
-
+  
   useEffect(() => {
     setIsClient(true);
-    // On the client, check the cookie for the persisted state
-    const defaultOpen = document.cookie.includes("sidebar_state=true");
-    setIsSidebarOpen(defaultOpen);
   }, []);
 
   // On the server, we can render with a default, and the client will correct it.
   // To prevent hydration mismatch, we use a key on the provider or wait for client.
-  // A simpler approach for now is to just use the initial state and let useEffect update it.
-  const sidebarDefaultOpen = isClient ? isSidebarOpen : true;
+  const defaultOpen = isClient ? document.cookie.includes("sidebar_state=true") : true;
 
   return (
-    <SidebarProvider defaultOpen={sidebarDefaultOpen} key={isClient ? 'client' : 'server'}>
+    <SidebarProvider defaultOpen={defaultOpen} key={isClient ? 'client' : 'server'}>
       <div className="flex min-h-screen">
         <Sidebar>
           <AppSidebar />
