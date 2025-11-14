@@ -1,11 +1,7 @@
 'use client';
 
-import InfoPage from '@/components/home/info-page';
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return (
-    <div className="space-y-4 pt-6">
-      <InfoPage />
-    </div>
-  );
+  redirect('/admin/companies');
 }
