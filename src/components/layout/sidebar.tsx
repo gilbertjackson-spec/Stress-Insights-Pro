@@ -1,4 +1,4 @@
-import { SidebarContent, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
+import { SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
 import { LayoutDashboard, FileText, Settings, LifeBuoy, LogOut, BrainCircuit, Building } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -20,15 +20,29 @@ export function AppSidebar() {
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="/admin/companies" passHref>
+            <Link href="/" passHref>
               <SidebarMenuButton
                 tooltip="Dashboard"
-                isActive={pathname === "/" || pathname.startsWith("/admin/companies")}
+                isActive={pathname === "/"}
                 asChild
               >
                 <div>
                   <LayoutDashboard />
                   Dashboard
+                </div>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <Link href="/admin/companies" passHref>
+              <SidebarMenuButton
+                tooltip="Empresas"
+                isActive={pathname.startsWith("/admin/companies")}
+                asChild
+              >
+                <div>
+                  <Building />
+                  Empresas
                 </div>
               </SidebarMenuButton>
             </Link>
