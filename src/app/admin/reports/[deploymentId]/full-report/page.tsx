@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useParams } from 'next/navigation';
@@ -99,11 +98,11 @@ export default function FullReportPage() {
   return (
     <div className="bg-background min-h-screen">
        <div className="p-4 sm:p-8 print:hidden max-w-4xl mx-auto flex justify-between items-center">
-            <Button variant="outline" asChild>
-                <Link href={`/admin/reports/${deploymentId}`}>
+            <Link href={`/admin/reports/${deploymentId}`}>
+                <Button variant="outline">
                     Voltar ao Dashboard
-                </Link>
-            </Button>
+                </Button>
+            </Link>
             <Button onClick={handlePrint}>
                 <Printer className="mr-2 h-4 w-4" />
                 Imprimir ou Salvar PDF
