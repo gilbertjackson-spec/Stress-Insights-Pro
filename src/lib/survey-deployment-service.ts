@@ -9,10 +9,11 @@ interface NewDeploymentData {
     startDate: string;
     endDate: string;
     totalInvited: number;
+    totalEmployees: number;
 }
 
 export const addSurveyDeployment = async (firestore: Firestore, data: NewDeploymentData) => {
-  const { companyId, templateId, startDate, endDate, totalInvited } = data;
+  const { companyId, templateId, startDate, endDate, totalInvited, totalEmployees } = data;
 
   if (!companyId || !templateId || !startDate || !endDate ) {
     throw new Error('Dados insuficientes para criar a pesquisa.');
@@ -26,6 +27,7 @@ export const addSurveyDeployment = async (firestore: Firestore, data: NewDeploym
     startDate,
     endDate,
     totalInvited,
+    totalEmployees,
     status: 'draft', // All new surveys start as drafts
     createdAt: new Date().toISOString(),
   };

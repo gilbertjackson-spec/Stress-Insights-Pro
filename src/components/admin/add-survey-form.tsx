@@ -38,6 +38,9 @@ const formSchema = z.object({
       required_error: 'A data de fim é obrigatória.',
     }),
   }),
+  totalEmployees: z.coerce
+    .number({ invalid_type_error: 'Deve ser um número.'})
+    .positive({ message: 'O número de colaboradores deve ser positivo.' }),
   totalInvited: z.coerce
     .number({ invalid_type_error: 'Deve ser um número.'})
     .positive({ message: 'O número de convidados deve ser positivo.' }),
@@ -65,6 +68,7 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
     resolver: zodResolver(formSchema),
     defaultValues: {
         totalInvited: 0,
+        totalEmployees: 0,
     },
   });
 
@@ -78,7 +82,8 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
         templateId: values.templateId,
         startDate: values.dateRange.from.toISOString(),
         endDate: values.dateRange.to.toISOString(),
-        totalInvited: values.totalInvited
+        totalInvited: values.totalInvited,
+        totalEmployees: values.totalEmployees,
       });
       toast({
         title: 'Pesquisa Criada!',
@@ -178,6 +183,23 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
         
         <FormField
           control={form.control}
+          name="totalEmployees"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Total de Colaboradores</FormLabel>
+              <FormControl>
+                <Input type="number" placeholder="Ex: 200" {...field} />
+              </FormControl>
+              <FormDescription>
+                Número total de colaboradores na empresa.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="totalInvited"
           render={({ field }) => (
             <FormItem>
@@ -186,7 +208,7 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
                 <Input type="number" placeholder="Ex: 150" {...field} />
               </FormControl>
               <FormDescription>
-                Número total de funcionários que serão convidados.
+                Número de colaboradores que serão convidados para a pesquisa.
               </FormDescription>
               <FormMessage />
             </FormItem>

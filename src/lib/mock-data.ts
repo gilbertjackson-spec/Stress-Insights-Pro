@@ -43,7 +43,7 @@ let questionIdCounter = 1;
 
 const surveyTemplate: SurveyTemplate = {
   template_id: 1,
-  name: 'Indicadores de Estresse HSE 2025',
+  name: 'Ferramenta de Avaliação dos Indicadores de Risco Psicossociais AptaFlow',
   domains: Object.entries(DOMAIN_QUESTIONS_MAP).map(([domainName, questionCodes], index) => ({
     domain_id: index + 1,
     template_id: 1,
