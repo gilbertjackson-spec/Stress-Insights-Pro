@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { Loader2, Calendar as CalendarIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -49,12 +49,14 @@ const formSchema = z.object({
 export function AddSurveyForm({ companyId, onFinished }: { companyId: string, onFinished: () => void }) {
   const { toast } = useToast();
   const firestore = useFirestore();
+  const { isUserLoading } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   
   const templatesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
+    // Wait until firebase is initialized and user is loaded
+    if (!firestore || isUserLoading) return null;
     return collection(firestore, 'survey_templates');
-  }, [firestore]);
+  }, [firestore, isUserLoading]);
 
   const { data: templates, isLoading: areTemplatesLoading } = useCollection<SurveyTemplate>(templatesQuery);
 
@@ -98,6 +100,8 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
     }
   }
 
+  const templatesStillLoading = areTemplatesLoading || isUserLoading;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
@@ -107,10 +111,10 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
           render={({ field }) => (
             <FormItem>
               <FormLabel>Template da Pesquisa</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={areTemplatesLoading}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={templatesStillLoading}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione um template..." />
+                    <SelectValue placeholder={templatesStillLoading ? "Carregando..." : "Selecione um template..."} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -119,7 +123,7 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
                       {template.name}
                     </SelectItem>
                   ))}
-                  {areTemplatesLoading && <SelectItem value="loading" disabled>Carregando...</SelectItem>}
+                  {templatesStillLoading && <SelectItem value="loading" disabled>Carregando templates...</SelectItem>}
                 </SelectContent>
               </Select>
               <FormMessage />
