@@ -61,7 +61,7 @@ export default function FullReportPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         <Skeleton className="h-10 w-3/4" />
         <Skeleton className="h-6 w-1/2" />
         <Skeleton className="h-64 w-full" />
@@ -73,7 +73,7 @@ export default function FullReportPage() {
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto p-4 sm:p-8">
+      <div className="max-w-4xl mx-auto">
         <Alert variant="destructive">
             <Terminal className="h-4 w-4" />
             <AlertTitle>Erro ao Carregar Relatório</AlertTitle>
@@ -85,7 +85,7 @@ export default function FullReportPage() {
   
   if (!reportData || !company || !deployment) {
     return (
-         <div className="max-w-4xl mx-auto p-4 sm:p-8">
+         <div className="max-w-4xl mx-auto">
             <Alert>
                 <Terminal className="h-4 w-4" />
                 <AlertTitle>Sem Dados</AlertTitle>
@@ -96,7 +96,7 @@ export default function FullReportPage() {
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background min-h-screen -m-4 sm:-m-6 lg:-m-8">
        <div className="p-4 sm:p-8 print:hidden max-w-4xl mx-auto flex justify-between items-center">
             <Link href={`/admin/reports/${deploymentId}`}>
                 <Button variant="outline">

@@ -29,7 +29,7 @@ export default function CompanyPage() {
 
   if (isLoading) {
     return (
-      <div className="p-4 sm:p-8 pt-6 space-y-6">
+      <div className="space-y-6">
         <Skeleton className="h-8 w-1/2" />
         <Skeleton className="h-96 w-full" />
         <Skeleton className="h-64 w-full" />
@@ -40,7 +40,7 @@ export default function CompanyPage() {
 
   if (!company) {
     return (
-        <div className="p-4 sm:p-8 pt-6">
+        <div>
             <h1 className="text-2xl font-bold">Empresa não encontrada</h1>
             <p>A empresa que você está tentando acessar não existe.</p>
         </div>
@@ -48,7 +48,7 @@ export default function CompanyPage() {
   }
 
   return (
-    <div className="p-4 sm:p-8 pt-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/admin/companies" className="hover:text-primary transition-colors">
           Empresas
