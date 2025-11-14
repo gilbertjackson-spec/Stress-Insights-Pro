@@ -89,9 +89,12 @@
   @media print {
     body {
         background-color: white !important;
-        font-size: 11pt;
+        font-size: 10pt;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+    }
+    .prose {
+        font-size: 10pt;
     }
   }
 }
@@ -110,6 +113,11 @@
     .print\:border-none {
       @media print {
         border: none !important;
+      }
+    }
+    .print\:grid {
+      @media print {
+        display: grid !important;
       }
     }
     .break-after-page {

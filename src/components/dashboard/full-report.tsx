@@ -23,7 +23,7 @@ const ReportSection = ({ title, children, className }: { title?: string, childre
 );
 
 const DomainReportSection = ({ domain }: { domain: DomainAnalysis }) => (
-     <div className="mt-8 break-inside-avoid">
+     <div className="mt-8 break-before-page">
         <h3 className="text-xl font-semibold font-headline mb-4">{domain.domain_name}</h3>
         <p className="text-sm italic text-muted-foreground">{domain.description}</p>
         <div className="my-6 p-6 bg-secondary/50 rounded-lg break-inside-avoid">
@@ -31,7 +31,7 @@ const DomainReportSection = ({ domain }: { domain: DomainAnalysis }) => (
             <p>{getDiagnosticText(domain)}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center break-inside-avoid">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start break-inside-avoid print:grid">
             <div className="flex justify-center">
                 <DomainScoreGauge 
                     score={domain.domain_score}
@@ -41,7 +41,7 @@ const DomainReportSection = ({ domain }: { domain: DomainAnalysis }) => (
                 />
             </div>
             <div>
-                <h4 className="font-bold mb-2 text-center">Análise por Pergunta</h4>
+                <h4 className="font-bold mb-4 text-center">Análise por Pergunta</h4>
                 <div className="space-y-2">
                 {domain.questions_analysis.map(qa => (
                     <QuestionBreakdown key={qa.question_id} questionAnalysis={qa} />
@@ -106,13 +106,8 @@ export default function FullReport({ data, company, deployment }: FullReportProp
                 
                 <ReportSection title="Principais Descobertas" className="break-before-page">
                     <p>
-                        O gráfico a seguir mostra as pontuações médias da empresa para cada um dos domínios cobertos pela pesquisa, em comparação com os benchmarks para o setor privado. A linha vermelha indica a pontuação do 25º percentil e a linha verde indica a pontuação do 75º percentil para a amostra comparativa.
+                        O gráfico a seguir mostra as pontuações médias da empresa para cada um dos domínios cobertos pela pesquisa.
                     </p>
-                    <ul className="break-inside-avoid">
-                        <li>Organizações que pontuaram <strong>abaixo da linha vermelha</strong> pontuaram menos bem do que 75% das organizações.</li>
-                        <li>Organizações que pontuaram <strong>entre a linha vermelha e a linha verde</strong> pontuaram dentro da média de 50% das organizações.</li>
-                        <li>Pontuações <strong>acima da linha verde</strong> são melhores do que 75% das organizações.</li>
-                    </ul>
                     <div className="py-8 not-prose break-inside-avoid">
                          <Card className="print:shadow-none print:border-none">
                             <CardHeader>
@@ -126,7 +121,7 @@ export default function FullReport({ data, company, deployment }: FullReportProp
                     </div>
                 </ReportSection>
 
-                <ReportSection title="Análise Detalhada por Domínio" className="break-before-page">
+                <ReportSection title="Análise Detalhada por Domínio">
                     {data.domain_analysis.map(domain => (
                         <DomainReportSection key={domain.domain_id} domain={domain} />
                     ))}
