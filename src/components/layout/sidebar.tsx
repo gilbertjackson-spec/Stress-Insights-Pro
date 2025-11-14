@@ -1,3 +1,5 @@
+'use client';
+
 import { SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar";
 import { LayoutDashboard, FileText, Settings, LifeBuoy, LogOut, BrainCircuit, Building } from "lucide-react";
 import { usePathname } from "next/navigation";
