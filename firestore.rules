@@ -77,13 +77,12 @@ service cloud.firestore {
 
     /**
      * @description Allows signed-in users to manage survey deployments.
-     * This rule permits reading (get and list) and writing (create, update) for signed-in users.
-     * 'list' is crucial for querying the collection on the dashboard.
+     * The 'read' permission on this path grants both 'get' for single documents
+     * and 'list' for collection queries. The 'write' permission grants 'create' and 'update'.
      */
     match /survey_deployments/{deploymentId} {
-      // Allow read (get, list) and write (create, update) for signed-in users.
       allow read, write: if isSignedIn();
-      // Keep delete restricted for now.
+      // Explicitly deny delete for now to prevent accidental data loss.
       allow delete: if false; 
     }
 
