@@ -111,12 +111,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     };
   }, [firebaseApp, firestore, auth, userAuthState]);
 
-  // Render children only when auth state is resolved (not loading)
-  // This prevents children from trying to access Firestore before authentication is ready
   return (
     <FirebaseContext.Provider value={contextValue}>
       <FirebaseErrorListener />
-      {!userAuthState.isUserLoading && children}
+      {children}
     </FirebaseContext.Provider>
   );
 };
