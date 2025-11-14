@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { DashboardData } from "@/lib/types";
-import { Users, Target, CheckCircle } from "lucide-react";
+import type { DashboardData, SurveyDeployment } from "@/lib/types";
+import { Users, Target, CheckCircle, PieChart } from "lucide-react";
+import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 interface OverviewCardsProps {
     data: DashboardData;
@@ -9,26 +11,26 @@ interface OverviewCardsProps {
 }
 
 export default function OverviewCards({ data, isLoading }: OverviewCardsProps) {
-    const { total_respondents, completion_rate } = data;
+    const { total_respondents, completion_rate, surveyStatus } = data;
     const cards = [
         {
             title: "Total de Respondentes",
             value: total_respondents,
             icon: Users,
-            change: null,
+            description: "Número de participantes com o filtro atual.",
         },
         {
-            title: "Taxa de Adesão",
+            title: "Taxa de Adesão Geral",
             value: `${completion_rate.toFixed(1)}%`,
-            icon: Target,
-            change: "em relação ao total convidado",
+            icon: PieChart,
+            description: "Baseado no total de convidados.",
         },
         // You can add more cards here, e.g., for average sentiment
         {
             title: "Status da Pesquisa",
-            value: "Fechada",
+            value: surveyStatus,
             icon: CheckCircle,
-            change: null,
+            description: "O estado atual da coleta de respostas.",
         }
     ];
 
@@ -51,8 +53,8 @@ export default function OverviewCards({ data, isLoading }: OverviewCardsProps) {
                         <card.icon className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{card.value}</div>
-                        {card.change && <p className="text-xs text-muted-foreground">{card.change}</p>}
+                        <div className="text-2xl font-bold capitalize">{card.value}</div>
+                        {card.description && <p className="text-xs text-muted-foreground">{card.description}</p>}
                     </CardContent>
                 </Card>
             ))}

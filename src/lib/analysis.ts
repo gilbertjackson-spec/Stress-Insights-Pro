@@ -1,14 +1,43 @@
 'use server'
 
-import { getMockSurveyTemplate, mockCompany } from './mock-data';
-import type { Answer, DashboardData, Demographics, Domain, DomainAnalysis, QuestionAnalysis, Respondent } from './types';
+import { getMockSurveyTemplate } from './mock-data';
+import type { Answer, DashboardData, Demographics, Domain, DomainAnalysis, QuestionAnalysis, Respondent, SurveyDeployment } from './types';
+import { initializeFirebase } from '@/firebase';
+import { getDocs, collection, doc, getDoc } from 'firebase/firestore';
 
 export interface Filters {
   unit?: string | 'all';
   sector?: string | 'all';
+  position?: string | 'all';
   age_range?: string | 'all';
   current_role_time?: string | 'all';
 }
+
+// Helper to fetch all respondents and their answers for a given deployment
+async function getRespondentsWithAnswers(deploymentId: string): Promise<Respondent[]> {
+    const { firestore } = initializeFirebase();
+    const respondentsRef = collection(firestore, 'survey_deployments', deploymentId, 'respondents');
+    const respondentsSnap = await getDocs(respondentsRef);
+
+    const respondents: Respondent[] = [];
+
+    for (const respondentDoc of respondentsSnap.docs) {
+        const respondentData = respondentDoc.data() as Omit<Respondent, 'id' | 'answers'>;
+        
+        const answersRef = collection(respondentDoc.ref, 'answers');
+        const answersSnap = await getDocs(answersRef);
+        const answers = answersSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Answer));
+
+        respondents.push({
+            ...respondentData,
+            id: respondentDoc.id,
+            answers,
+        });
+    }
+
+    return respondents;
+}
+
 
 function filterRespondents(respondents: Respondent[], filters: Filters): Respondent[] {
   return respondents.filter(respondent => {
@@ -20,7 +49,9 @@ function filterRespondents(respondents: Respondent[], filters: Filters): Respond
 }
 
 function analyzeQuestion(questionId: number, respondents: Respondent[]): { average_score: number; sentiment_distribution: any } {
-  const relevantAnswers: Answer[] = respondents.flatMap(r => r.answers.filter(a => a.question_id === questionId));
+  const relevantAnswers = respondents.flatMap(r => 
+      (r.answers || []).filter(a => a.questionId === questionId)
+  );
 
   if (relevantAnswers.length === 0) {
     return {
@@ -32,7 +63,7 @@ function analyzeQuestion(questionId: number, respondents: Respondent[]): { avera
     };
   }
 
-  const totalScore = relevantAnswers.reduce((sum, answer) => sum + answer.calculated_score, 0);
+  const totalScore = relevantAnswers.reduce((sum, answer) => sum + answer.calculatedScore, 0);
   const average_score = totalScore / relevantAnswers.length;
 
   const sentimentCounts = relevantAnswers.reduce((counts, answer) => {
@@ -96,22 +127,40 @@ function analyzeDomain(domain: Domain, respondents: Respondent[]): DomainAnalysi
   };
 }
 
-export async function getDashboardData(filters: Filters): Promise<DashboardData> {
-  const deployment = mockCompany.deployments[0];
+export async function getDashboardData(deploymentId: string, filters: Filters): Promise<DashboardData> {
+  const { firestore } = initializeFirebase();
+
+  // 1. Fetch deployment details
+  const deploymentRef = doc(firestore, 'survey_deployments', deploymentId);
+  const deploymentSnap = await getDoc(deploymentRef);
+  if (!deploymentSnap.exists()) {
+      throw new Error("Survey deployment not found.");
+  }
+  const deployment = deploymentSnap.data() as SurveyDeployment;
+
+  // 2. Fetch all respondents and their answers for this deployment
+  const allRespondents = await getRespondentsWithAnswers(deploymentId);
+  
+  // 3. Get the survey template (still from mock, can be moved to Firestore later)
   const template = getMockSurveyTemplate();
 
-  const filteredRespondents = filterRespondents(deployment.respondents, filters);
+  // 4. Filter respondents based on the dashboard filters
+  const filteredRespondents = filterRespondents(allRespondents, filters);
 
+  // 5. Analyze domains based on filtered respondents
   const domain_analysis = template.domains.map(domain => analyzeDomain(domain, filteredRespondents));
 
+  // 6. Calculate summary stats
   const total_respondents = filteredRespondents.length;
-  const completion_rate = deployment.total_invited > 0 ? (deployment.respondents.length / deployment.total_invited) * 100 : 0;
-
+  const completion_rate = deployment.totalInvited > 0 ? (allRespondents.length / deployment.totalInvited) * 100 : 0;
+  
+  // 7. Get available demographic options from all respondents (before filtering)
   const demographic_options = {
-    units: ['all', ...new Set(deployment.respondents.map(r => r.demographics.unit))],
-    sectors: ['all', ...new Set(deployment.respondents.map(r => r.demographics.sector))],
-    age_ranges: ['all', ...new Set(deployment.respondents.map(r => r.demographics.age_range))],
-    current_role_times: ['all', ...new Set(deployment.respondents.map(r => r.demographics.current_role_time))],
+    units: ['all', ...new Set(allRespondents.map(r => r.demographics.unit))],
+    sectors: ['all', ...new Set(allRespondents.map(r => r.demographics.sector))],
+    positions: ['all', ...new Set(allRespondents.map(r => r.demographics.position))],
+    age_ranges: ['all', ...new Set(allRespondents.map(r => r.demographics.age_range))],
+    current_role_times: ['all', ...new Set(allRespondents.map(r => r.demographics.current_role_time))],
   };
 
   return {

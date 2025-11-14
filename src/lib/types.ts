@@ -38,20 +38,22 @@ export interface Demographics {
 }
 
 export interface Answer {
-  answer_id: number;
-  respondent_id: number;
-  question_id: number;
-  raw_response: string; // e.g., "Sempre"
-  calculated_score: number; // 1-5
+  id: string; // Firestore document id
+  questionId: number;
+  rawResponse: string;
+  calculatedScore: number;
   sentiment: Sentiment;
+  domainName: string;
+  questionCode: string;
 }
 
 export interface Respondent {
-  respondent_id: number;
-  deployment_id: number;
+  id: string; // Firestore document id
+  deploymentId: string;
   status: 'pending' | 'started' | 'completed';
   demographics: Demographics;
-  answers: Answer[];
+  completedAt: string;
+  answers?: Answer[]; // This will be populated after fetching
 }
 
 export type SurveyStatus = 'draft' | 'active' | 'suspended' | 'closed';
@@ -63,7 +65,7 @@ export interface SurveyDeployment {
   startDate: string;
   endDate: string;
   status: SurveyStatus;
-  total_invited: number;
+  totalInvited: number;
   totalEmployees: number;
   respondents?: Respondent[];
 }
@@ -103,7 +105,7 @@ export interface QuestionAnalysis {
     favorable_perc: number;
     neutral_perc: number;
     unfavorable_perc: number;
-    favorable_count: number;
+favorable_count: number;
     neutral_count: number;
     unfavorable_count: number;
   };

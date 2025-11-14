@@ -1,5 +1,5 @@
 import type { Icon } from "lucide-react";
-import { Briefcase, HeartHandshake, Hourglass, RefreshCw, SlidersHorizontal, UserCheck, Users } from "lucide-react";
+import { Briefcase, HeartHandshake, Hourglass, RefreshCw, SlidersHorizontal, UserCheck, Users, UserCog } from "lucide-react";
 
 export const DOMAIN_QUESTIONS_MAP: Record<string, string[]> = {
   'Papéis': ['Q-01', 'Q-04', 'Q-11', 'Q-13', 'Q-17'],
@@ -17,6 +17,7 @@ export const INVERTED_DOMAINS = ['Demandas', 'Relacionamentos'];
 export const DEMOGRAPHIC_FILTERS = {
   unit: 'Unidade',
   sector: 'Setor',
+  position: 'Cargo',
   age_range: 'Faixa Etária',
   current_role_time: 'Tempo no cargo',
 };
