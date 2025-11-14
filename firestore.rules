@@ -76,9 +76,9 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows signed-in users to manage survey deployments.
-     * The 'read' permission on this path grants both 'get' for single documents
-     * and 'list' for collection queries. The 'write' permission grants 'create' and 'update'.
+     * @description Allows signed-in users to read/list and write survey deployments.
+     * The `read` permission on this path grants both `get` for single documents
+     * and `list` for collection queries. The `write` permission grants `create` and `update`.
      */
     match /survey_deployments/{deploymentId} {
       allow read, write: if isSignedIn();
