@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, collectionGroup, query, where } from 'firebase/firestore';
+import { collection, query, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Component } from 'lucide-react';
@@ -15,27 +15,44 @@ import { AddSectorForm } from './add-sector-form';
 export default function SectorsManagement({ companyId }: { companyId: string }) {
     const firestore = useFirestore();
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [sectors, setSectors] = useState<Sector[]>([]);
+    const [sectorsLoading, setSectorsLoading] = useState(true);
 
     const unitsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         return collection(firestore, 'companies', companyId, 'units');
     }, [firestore, companyId]);
 
-    const sectorsQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        // This query uses a trick to get all sectors for a company.
-        // It queries the 'sectors' collection group for documents whose path is "under" `companies/{companyId}`.
-        const startPath = `companies/${companyId}/`;
-        const endPath = `companies/${companyId}\uf8ff`; // \uf8ff is a very high code point character
-        return query(collectionGroup(firestore, 'sectors'), where('__name__', '>=', startPath), where('__name__', '<', endPath));
-    }, [firestore, companyId]);
-
     const { data: units, isLoading: unitsLoading } = useCollection<Unit>(unitsQuery);
-    const { data: sectors, isLoading: sectorsLoading } = useCollection<Sector>(sectorsQuery);
+
+    useEffect(() => {
+        const fetchSectors = async () => {
+            if (!firestore || !units) return;
+
+            setSectorsLoading(true);
+            const allSectors: Sector[] = [];
+            
+            for (const unit of units) {
+                const sectorsCollectionRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
+                const sectorsSnapshot = await getDocs(sectorsCollectionRef);
+                sectorsSnapshot.forEach(doc => {
+                    allSectors.push({ ...doc.data(), id: doc.id, unitId: unit.id } as Sector);
+                });
+            }
+            
+            setSectors(allSectors);
+            setSectorsLoading(false);
+        };
+
+        if(units) {
+            fetchSectors();
+        }
+    }, [firestore, companyId, units]);
+
 
     const isLoading = unitsLoading || sectorsLoading;
 
-    const getUnitName = (unitId: string) => units?.find(u => u.id === unitId)?.name || 'Unidade desconhecida';
+    const getUnitName = (unitId: string) => units?.find(u => u.id === unitId)?.name || '...';
 
     const sectorsWithUnitNames = sectors?.map(sector => ({
         ...sector,
