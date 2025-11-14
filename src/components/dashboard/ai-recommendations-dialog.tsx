@@ -83,7 +83,7 @@ export default function AiRecommendationsDialog({ domainScores }: AiRecommendati
             </Alert>
           )}
           {recommendations && (
-            <div className="prose prose-sm dark:prose-invert bg-secondary/50 p-4 rounded-md max-h-[400px] overflow-y-auto">
+            <div className="prose prose-sm dark:prose-invert bg-secondary/50 p-4 rounded-md max-h-[400px] overflow-y-auto whitespace-pre-wrap">
               <p>{recommendations}</p>
             </div>
           )}

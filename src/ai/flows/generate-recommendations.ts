@@ -18,7 +18,7 @@ const GenerateRecommendationsInputSchema = z.object({
 export type GenerateRecommendationsInput = z.infer<typeof GenerateRecommendationsInputSchema>;
 
 const GenerateRecommendationsOutputSchema = z.object({
-  recommendations: z.string().describe('Proactive recommendations to address potential stress hotspots.'),
+  recommendations: z.string().describe('Proactive recommendations to address potential stress hotspots, in Brazilian Portuguese.'),
 });
 export type GenerateRecommendationsOutput = z.infer<typeof GenerateRecommendationsOutputSchema>;
 
@@ -31,22 +31,24 @@ const prompt = ai.definePrompt({
   input: {schema: GenerateRecommendationsInputSchema},
   output: {schema: GenerateRecommendationsOutputSchema},
   prompt: `You are an AI assistant specialized in providing proactive recommendations to address potential stress hotspots within a company, based on survey data.
+  
+  Your response MUST be in Brazilian Portuguese.
 
-  Based on the following domain scores:
+  Based on the following domain scores (from 1 to 5, where lower is worse):
   {{#each domainScores}}
-    - {{key}}: {{value}}
+    - {{@key}}: {{this}}
   {{/each}}
 
   {{#if demographics}}
   Considering the following demographic data:
   {{#each demographics}}
-    - {{key}}: {{value}}
+    - {{@key}}: {{this}}
   {{/each}}
   {{/if}}
 
   Provide actionable recommendations for the client admin to address potential stress hotspots.
   Focus on the domains with the lowest scores and suggest specific strategies or initiatives.
-  Be concise and practical.
+  Be concise, practical, and format your response as a single block of text.
   `,
 });
 
