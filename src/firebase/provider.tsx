@@ -111,10 +111,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     };
   }, [firebaseApp, firestore, auth, userAuthState]);
 
+  // Render children only when auth state is resolved (not loading)
+  // This prevents children from trying to access Firestore before authentication is ready
   return (
     <FirebaseContext.Provider value={contextValue}>
       <FirebaseErrorListener />
-      {children}
+      {!userAuthState.isUserLoading && children}
     </FirebaseContext.Provider>
   );
 };
@@ -182,5 +184,3 @@ export const useUser = (): UserHookResult => { // Renamed from useAuthUser
   const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
   return { user, isUserLoading, userError };
 };
-
-    
