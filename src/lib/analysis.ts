@@ -39,9 +39,13 @@ function filterRespondents(respondents: Respondent[], filters: Filters): Respond
   return respondents.filter(respondent => {
     return Object.entries(filters).every(([key, value]) => {
       if (!value || value === 'all') return true;
-      // Handle cases where respondent.demographics might be undefined
-      if (!respondent.demographics) return false;
-      return respondent.demographics[key as keyof Demographics] === value;
+      // Handle cases where respondent.demographics might be undefined or a string
+      const demo = (typeof respondent.demographics === 'string') 
+        ? JSON.parse(respondent.demographics) 
+        : respondent.demographics;
+
+      if (!demo) return false;
+      return demo[key as keyof Demographics] === value;
     });
   });
 }
@@ -84,11 +88,11 @@ function analyzeQuestion(questionId: number, respondents: Respondent[]): { avera
 
 function analyzeDomain(domain: Domain, respondents: Respondent[]): DomainAnalysis {
   const questions_analysis: QuestionAnalysis[] = domain.questions.map(q => {
-    const { average_score, sentiment_distribution } = analyzeQuestion(q.question_id, respondents);
+    const { average_score, sentiment_distribution } = analyzeQuestion(q.id, respondents);
     return {
-      question_id: q.question_id,
-      question_code: q.question_code,
-      question_text: q.question_text,
+      question_id: q.id,
+      question_code: q.questionCode,
+      question_text: q.questionText,
       average_score,
       sentiment_distribution,
     };
@@ -109,15 +113,15 @@ function analyzeDomain(domain: Domain, respondents: Respondent[]): DomainAnalysi
   }
 
   return {
-    domain_id: domain.domain_id,
+    domain_id: domain.id,
     domain_name: domain.name,
     domain_score,
-    benchmark_private_sector: domain.benchmark_private_sector,
-    percentile_25: domain.percentile_25,
-    percentile_75: domain.percentile_75,
-    text_result_low: domain.text_result_low,
-    text_result_medium: domain.text_result_medium,
-    text_result_high: domain.text_result_high,
+    benchmark_private_sector: domain.benchmarkPrivateSector,
+    percentile_25: domain.percentile25,
+    percentile_75: domain.percentile75,
+    text_result_low: domain.textResultLow,
+    text_result_medium: domain.textResultMedium,
+    text_result_high: domain.textResultHigh,
     description: domain.description,
     strong_point,
     weak_point,
@@ -152,12 +156,25 @@ export async function getDashboardData(firestore: Firestore, deploymentId: strin
   const completion_rate = deployment.totalInvited > 0 ? (allRespondents.length / deployment.totalInvited) * 100 : 0;
   
   // 7. Get available demographic options from all respondents (before filtering)
+  const getDemoOptions = (key: keyof Demographics) => {
+    const options = new Set<string>();
+    allRespondents.forEach(r => {
+        const demo = (typeof r.demographics === 'string') 
+            ? JSON.parse(r.demographics) 
+            : r.demographics;
+        if (demo && demo[key]) {
+            options.add(demo[key]);
+        }
+    });
+    return ['all', ...Array.from(options)];
+  };
+
   const demographic_options = {
-    units: ['all', ...Array.from(new Set(allRespondents.map(r => r.demographics?.unit).filter(Boolean)))],
-    sectors: ['all', ...Array.from(new Set(allRespondents.map(r => r.demographics?.sector).filter(Boolean)))],
-    positions: ['all', ...Array.from(new Set(allRespondents.map(r => r.demographics?.position).filter(Boolean)))],
-    age_ranges: ['all', ...Array.from(new Set(allRespondents.map(r => r.demographics?.age_range).filter(Boolean)))],
-    current_role_times: ['all', ...Array.from(new Set(allRespondents.map(r => r.demographics?.current_role_time).filter(Boolean)))],
+    units: getDemoOptions('unit'),
+    sectors: getDemoOptions('sector'),
+    positions: getDemoOptions('position'),
+    age_ranges: getDemoOptions('age_range'),
+    current_role_times: getDemoOptions('current_role_time'),
   };
 
   return {

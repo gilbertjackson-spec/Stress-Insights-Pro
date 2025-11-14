@@ -1,8 +1,7 @@
 'use client';
 
-import { addDocumentNonBlocking } from "@/firebase";
 import { collection, writeBatch, doc, Firestore } from "firebase/firestore";
-import type { Demographics, SurveyTemplate, Question } from "./types";
+import type { Demographics, SurveyTemplate } from "./types";
 import { LIKERT_SCALE } from "./constants";
 
 interface AnswerSubmission {
@@ -25,7 +24,7 @@ export const addAnswerBatch = async (firestore: Firestore, submission: AnswerSub
     // 3. Add the respondent document to the batch
     batch.set(respondentRef, {
         deploymentId,
-        demographics,
+        demographics: JSON.stringify(demographics), // Store demographics as a JSON string
         status: 'completed',
         completedAt: new Date().toISOString(),
     });
@@ -34,11 +33,11 @@ export const addAnswerBatch = async (firestore: Firestore, submission: AnswerSub
     const allQuestions = template.domains.flatMap(d => d.questions);
 
     for (const question of allQuestions) {
-        const rawResponse = answers[question.question_id];
+        const rawResponse = answers[question.id];
         if (rawResponse) {
             const rawResponseIndex = LIKERT_SCALE.indexOf(rawResponse);
             const baseScore = rawResponseIndex + 1;
-            const calculatedScore = question.is_inverted_score ? 6 - baseScore : baseScore;
+            const calculatedScore = question.isInvertedScore ? 6 - baseScore : baseScore;
 
             let sentiment: 'Favorável' | 'Neutro' | 'Desfavorável';
             if (calculatedScore <= 2) sentiment = 'Desfavorável';
@@ -48,9 +47,9 @@ export const addAnswerBatch = async (firestore: Firestore, submission: AnswerSub
             const answerRef = doc(collection(respondentRef, 'answers')); // Nested collection
             
             batch.set(answerRef, {
-                questionId: question.question_id,
-                questionCode: question.question_code,
-                domainName: template.domains.find(d => d.domain_id === question.domain_id)?.name,
+                questionId: question.id,
+                questionCode: question.questionCode,
+                domainName: template.domains.find(d => d.id === question.domainId)?.name,
                 rawResponse,
                 calculatedScore,
                 sentiment,

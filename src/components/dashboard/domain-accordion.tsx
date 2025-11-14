@@ -37,7 +37,7 @@ export default function DomainAccordion({ data, isLoading }: DomainAccordionProp
                                     <span className="text-base font-semibold font-headline">{domain.domain_name}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <span className={cn("text-xl font-bold", getScoreColorClass(domain.domain_score))}>
+                                    <span className={cn("text-xl font-bold", getScoreColorClass(domain.domain_score, domain.percentile_25, domain.percentile_75))}>
                                         {domain.domain_score.toFixed(2)}
                                     </span>
                                 </div>

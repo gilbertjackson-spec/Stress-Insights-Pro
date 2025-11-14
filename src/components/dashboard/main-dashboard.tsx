@@ -4,16 +4,18 @@ import { useEffect, useState } from 'react';
 import type { DashboardData } from '@/lib/types';
 import type { Filters } from '@/lib/analysis';
 import { getDashboardData } from '@/lib/analysis';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useFirestore } from '@/firebase';
+import Link from 'next/link';
+
 import DashboardFilters from './filters';
 import OverviewCards from './overview-cards';
 import ExecutiveSummary from './executive-summary';
 import DomainAccordion from './domain-accordion';
+import DashboardSkeleton from './dashboard-skeleton';
+import EmptyDashboard from './empty-dashboard';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { Terminal, Printer } from 'lucide-react';
-import { useFirestore } from '@/firebase';
 import { Button } from '../ui/button';
-import Link from 'next/link';
+import { Terminal, Printer } from 'lucide-react';
 
 const initialFilters: Filters = {
     unit: 'all',
@@ -67,25 +69,14 @@ export default function MainDashboard({ deploymentId }: MainDashboardProps) {
         )
     }
 
-    if (!data || data.total_respondents === 0 && filters.unit === 'all' && filters.sector === 'all' && filters.position === 'all') {
-        return (
-            <div className='space-y-6'>
-                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Dashboard de Análise</h1>
-                </div>
-                 <Alert>
-                    <Terminal className="h-4 w-4" />
-                    <AlertTitle>Nenhuma resposta ainda</AlertTitle>
-                    <AlertDescription>
-                        Ainda não há dados de resposta para esta pesquisa. Compartilhe o link para começar a coletar respostas.
-                    </AlertDescription>
-                </Alert>
-            </div>
-        );
+    if (!data) {
+      return <DashboardSkeleton />; // Should not happen if not loading and no error, but as a safeguard
     }
     
-    if (!data) {
-        return <DashboardSkeleton />;
+    const isInitialLoad = data.total_respondents === 0 && Object.values(filters).every(v => v === 'all');
+
+    if (isInitialLoad) {
+        return <EmptyDashboard />;
     }
 
     return (
@@ -129,30 +120,3 @@ export default function MainDashboard({ deploymentId }: MainDashboardProps) {
         </div>
     );
 }
-
-function DashboardSkeleton() {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-9 w-64" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Skeleton className="h-28 w-full" />
-            <Skeleton className="h-28 w-full" />
-            <Skeleton className="h-28 w-full" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
-            <Skeleton className="md:col-span-4 lg:col-span-4 h-96" />
-            <Skeleton className="md:col-span-3 lg:col-span-3 h-96" />
-        </div>
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
-      </div>
-    );
-  }

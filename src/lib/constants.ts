@@ -1,5 +1,6 @@
 import type { Icon } from "lucide-react";
-import { Briefcase, HeartHandshake, Hourglass, RefreshCw, SlidersHorizontal, UserCheck, Users, UserCog } from "lucide-react";
+import { Briefcase, HeartHandshake, Hourglass, RefreshCw, SlidersHorizontal, UserCheck, Users } from "lucide-react";
+import { DEMO_OPTIONS as MockDemoOptions } from './mock-data-fortesting';
 
 export const DOMAIN_QUESTIONS_MAP: Record<string, string[]> = {
   'Papéis': ['Q-01', 'Q-04', 'Q-11', 'Q-13', 'Q-17'],
@@ -31,3 +32,12 @@ export const DOMAIN_ICONS: Record<string, Icon> = {
     "Suporte da Gestão": UserCheck,
     "Mudanças": RefreshCw,
 };
+
+// Demographic form fields configuration
+export const DEMO_FIELDS: { name: 'unit' | 'sector' | 'position' | 'age_range' | 'current_role_time'; label: string; options: { id: string; name: string }[] }[] = [
+    { name: 'unit', label: 'Unidade', options: [] }, // Options populated from props
+    { name: 'sector', label: 'Setor', options: [] }, // Options populated from props
+    { name: 'position', label: 'Cargo', options: [] }, // Options populated from props
+    { name: 'age_range', label: 'Faixa Etária', options: MockDemoOptions.age_ranges.map(o => ({id: o, name: o})) },
+    { name: 'current_role_time', label: 'Tempo no Cargo Atual', options: MockDemoOptions.current_role_times.map(o => ({id: o, name: o})) },
+];

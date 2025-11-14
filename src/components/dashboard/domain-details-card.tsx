@@ -40,7 +40,12 @@ export default function DomainDetailsCard({ domain }: DomainDetailsCardProps) {
                 <h4 className="text-lg font-semibold font-headline mb-4">Análise por Pergunta</h4>
                 <div className="space-y-4">
                     {domain.questions_analysis.map(qa => (
-                        <QuestionBreakdown key={qa.question_id} questionAnalysis={qa} />
+                        <QuestionBreakdown 
+                            key={qa.question_id} 
+                            questionAnalysis={qa} 
+                            p25={domain.percentile_25}
+                            p75={domain.percentile_75}
+                        />
                     ))}
                 </div>
             </div>

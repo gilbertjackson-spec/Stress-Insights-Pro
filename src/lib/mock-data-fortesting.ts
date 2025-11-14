@@ -1,6 +1,10 @@
 import type { Company, SurveyTemplate, Respondent, Demographics, Answer, Sentiment } from './types';
 import { DOMAIN_QUESTIONS_MAP, LIKERT_SCALE, INVERTED_DOMAINS } from './constants';
 
+// This file is a bit of a mess because it was used for early prototyping.
+// It generates a lot of data that is not used in the final version of the app,
+// but it is still used for testing purposes, so it is kept here.
+
 const questionsData: { code: string; text: string }[] = [
   { code: 'Q-01', text: 'Tenho clareza sobre os objetivos e as responsabilidades do meu cargo.' },
   { code: 'Q-02', text: 'Tenho autonomia para decidir como realizar meu trabalho.' },
@@ -42,27 +46,27 @@ const questionsData: { code: string; text: string }[] = [
 let questionIdCounter = 1;
 
 const surveyTemplate: SurveyTemplate = {
-  template_id: 1,
+  id: 1,
   name: 'Ferramenta de Avaliação dos Indicadores de Risco Psicossociais AptaFlow',
   domains: Object.entries(DOMAIN_QUESTIONS_MAP).map(([domainName, questionCodes], index) => ({
-    domain_id: index + 1,
-    template_id: 1,
+    id: index + 1,
+    templateId: 1,
     name: domainName,
-    benchmark_private_sector: parseFloat((3.1 + Math.random() * 0.5).toFixed(2)),
-    percentile_25: parseFloat((2.8 + Math.random() * 0.4).toFixed(2)),
-    percentile_75: parseFloat((3.6 + Math.random() * 0.4).toFixed(2)),
-    text_result_low: `Sua pontuação para ${domainName} está abaixo do 25º percentil, sugerindo uma área de risco significativa. É crucial investigar as causas e implementar ações corretivas.`,
-    text_result_medium: `Sua pontuação para ${domainName} está na média do setor, entre o 25º e o 75º percentil. Existem oportunidades de melhoria para elevar o bem-estar da equipe.`,
-    text_result_high: `Sua pontuação para ${domainName} está acima do 75º percentil, indicando um ponto forte na organização. Continue nutrindo este ambiente positivo.`,
+    benchmarkPrivateSector: parseFloat((3.1 + Math.random() * 0.5).toFixed(2)),
+    percentile25: parseFloat((2.8 + Math.random() * 0.4).toFixed(2)),
+    percentile75: parseFloat((3.6 + Math.random() * 0.4).toFixed(2)),
+    textResultLow: `Sua pontuação para ${domainName} está abaixo do 25º percentil, sugerindo uma área de risco significativa. É crucial investigar as causas e implementar ações corretivas.`,
+    textResultMedium: `Sua pontuação para ${domainName} está na média do setor, entre o 25º e o 75º percentil. Existem oportunidades de melhoria para elevar o bem-estar da equipe.`,
+    textResultHigh: `Sua pontuação para ${domainName} está acima do 75º percentil, indicando um ponto forte na organização. Continue nutrindo este ambiente positivo.`,
     description: `Este domínio mede ${domainName.toLowerCase()}, que se refere à carga de trabalho, padrões de trabalho e ambiente, e como eles afetam o bem-estar dos colaboradores.`,
     questions: questionCodes.map(code => {
       const question = questionsData.find(q => q.code === code);
       return {
-        question_id: questionIdCounter++,
-        domain_id: index + 1,
-        question_code: code,
-        question_text: question ? question.text : `Texto para a pergunta ${code}`,
-        is_inverted_score: INVERTED_DOMAINS.includes(domainName),
+        id: questionIdCounter++,
+        domainId: index + 1,
+        questionCode: code,
+        questionText: question ? question.text : `Texto para a pergunta ${code}`,
+        isInvertedScore: INVERTED_DOMAINS.includes(domainName),
       };
     }),
   })),
@@ -71,76 +75,10 @@ const surveyTemplate: SurveyTemplate = {
 export const DEMO_OPTIONS = {
   units: ['Unidade 01', 'Unidade 02', 'Unidade 03'],
   sectors: ['Setor 01', 'Setor 02', 'Setor 03', 'Setor 04', 'Setor 05'],
+  positions: ['Cargo 01', 'Cargo 02', 'Cargo 03'],
   current_role_times: ['Menos de 1 ano', 'Entre 1 e 2 anos', 'Entre 2 e 5 anos', 'Mais de 5 anos'],
   age_ranges: ['18-24', '25-34', '35-44', '45-54', '55+'],
   health_issues: ['Sim', 'Não', 'Prefiro não dizer'] as ('Sim' | 'Não' | 'Prefiro não dizer')[],
-};
-
-const getRandomItem = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
-
-let respondentIdCounter = 1;
-let answerIdCounter = 1;
-
-const generateRespondents = (count: number): Respondent[] => {
-  const respondents: Respondent[] = [];
-  const allQuestions = surveyTemplate.domains.flatMap(d => d.questions);
-
-  for (let i = 0; i < count; i++) {
-    const demographics: Demographics = {
-      unit: getRandomItem(DEMO_OPTIONS.units),
-      sector: getRandomItem(DEMO_OPTIONS.sectors),
-      current_role_time: getRandomItem(DEMO_OPTIONS.current_role_times),
-      age_range: getRandomItem(DEMO_OPTIONS.age_ranges),
-      health_issue: getRandomItem(DEMO_OPTIONS.health_issues),
-    };
-
-    const answers: Answer[] = allQuestions.map(question => {
-      const raw_response_index = Math.floor(Math.random() * LIKERT_SCALE.length);
-      const raw_response = LIKERT_SCALE[raw_response_index];
-      const base_score = raw_response_index + 1;
-      const calculated_score = question.is_inverted_score ? 6 - base_score : base_score;
-      
-      let sentiment: Sentiment;
-      if (calculated_score <= 2) sentiment = 'Desfavorável';
-      else if (calculated_score === 3) sentiment = 'Neutro';
-      else sentiment = 'Favorável';
-
-      return {
-        answer_id: answerIdCounter++,
-        respondent_id: respondentIdCounter,
-        question_id: question.question_id,
-        raw_response,
-        calculated_score,
-        sentiment,
-      };
-    });
-
-    respondents.push({
-      respondent_id: respondentIdCounter++,
-      deployment_id: 1,
-      status: 'completed',
-      demographics,
-      answers,
-    });
-  }
-  return respondents;
-};
-
-export const mockCompany: Company = {
-  company_id: 1,
-  name: 'Empresa-Cliente Exemplo',
-  deployments: [
-    {
-      deployment_id: 1,
-      template_id: 1,
-      company_id: 1,
-      start_date: '2024-05-01',
-      end_date: '2024-05-31',
-      status: 'closed',
-      total_invited: 150,
-      respondents: generateRespondents(112),
-    },
-  ],
 };
 
 export const getMockSurveyTemplate = (): SurveyTemplate => surveyTemplate;

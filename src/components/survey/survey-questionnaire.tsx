@@ -110,22 +110,22 @@ export default function SurveyQuestionnaire({ deploymentId, demographics, onComp
         <Carousel setApi={setApi} className="w-full px-12">
             <CarouselContent>
             {template.domains.map((domain: Domain) => (
-                <CarouselItem key={domain.domain_id}>
+                <CarouselItem key={domain.id}>
                     <div className="p-1">
                         <h3 className="text-lg font-semibold text-center mb-4">{domain.name}</h3>
                         <div className="space-y-6">
                         {domain.questions.map((question: Question) => (
-                            <div key={question.question_id} className="p-4 border rounded-lg bg-secondary/30">
-                                <p className="font-medium mb-4">{question.question_text}</p>
+                            <div key={question.id} className="p-4 border rounded-lg bg-secondary/30">
+                                <p className="font-medium mb-4">{question.questionText}</p>
                                 <RadioGroup
-                                    onValueChange={(value) => handleAnswerChange(question.question_id, value)}
-                                    value={answers[question.question_id]}
+                                    onValueChange={(value) => handleAnswerChange(question.id, value)}
+                                    value={answers[question.id]}
                                     className="flex flex-wrap justify-center gap-4"
                                 >
                                 {LIKERT_SCALE.map((option, index) => (
                                     <div key={index} className="flex items-center space-x-2">
-                                        <RadioGroupItem value={option} id={`q${question.question_id}-o${index}`} />
-                                        <Label htmlFor={`q${question.question_id}-o${index}`}>{option}</Label>
+                                        <RadioGroupItem value={option} id={`q${question.id}-o${index}`} />
+                                        <Label htmlFor={`q${question.id}-o${index}`}>{option}</Label>
                                     </div>
                                 ))}
                                 </RadioGroup>

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { DEMO_OPTIONS } from '@/lib/mock-data-fortesting';
+import { DEMO_FIELDS } from '@/lib/constants';
 import { Loader2 } from 'lucide-react';
 import type { Unit, Sector, Position } from '@/lib/types';
 
@@ -43,17 +43,21 @@ export default function SurveyDemographicsForm({ onSubmit, isLoading, units, sec
     resolver: zodResolver(formSchema),
   });
 
-  // Use a map to ensure unique options by name
-  const uniqueSectors = [...new Map(sectors.map(item => [item.name, item])).values()];
-  const uniquePositions = [...new Map(positions.map(item => [item.name, item])).values()];
+  const getOptionsForField = (fieldName: string) => {
+    switch (fieldName) {
+      case 'unit':
+        return units.map(u => ({ id: u.id, name: u.name }));
+      case 'sector':
+        // Use a map to ensure unique options by name
+        return [...new Map(sectors.map(item => [item.name, item])).values()].map(s => ({ id: s.id, name: s.name }));
+      case 'position':
+        return [...new Map(positions.map(item => [item.name, item])).values()].map(p => ({ id: p.id, name: p.name }));
+      default:
+        const field = DEMO_FIELDS.find(f => f.name === fieldName);
+        return field ? field.options : [];
+    }
+  };
 
-  const DEMO_FIELDS = [
-    { name: 'unit', label: 'Unidade', options: units },
-    { name: 'sector', label: 'Setor', options: uniqueSectors },
-    { name: 'position', label: 'Cargo', options: uniquePositions },
-    { name: 'age_range', label: 'Faixa Etária', options: DEMO_OPTIONS.age_ranges.map(o => ({id: o, name: o})) },
-    { name: 'current_role_time', label: 'Tempo no Cargo Atual', options: DEMO_OPTIONS.current_role_times.map(o => ({id: o, name: o})) },
-  ] as const;
 
   return (
     <>
@@ -86,7 +90,7 @@ export default function SurveyDemographicsForm({ onSubmit, isLoading, units, sec
                                         </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                        {fieldInfo.options.map(option => (
+                                        {getOptionsForField(fieldInfo.name).map(option => (
                                             <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
                                         ))}
                                         </SelectContent>

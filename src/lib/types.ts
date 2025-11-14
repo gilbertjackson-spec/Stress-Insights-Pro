@@ -1,39 +1,39 @@
 export type Sentiment = 'Favorável' | 'Neutro' | 'Desfavorável';
 
 export interface Question {
-  question_id: number;
-  domain_id: number;
-  question_text: string;
-  question_code: string;
-  is_inverted_score: boolean;
+  id: number; // Renamed from question_id
+  domainId: number; // Renamed from domain_id
+  questionText: string;
+  questionCode: string;
+  isInvertedScore: boolean;
 }
 
 export interface Domain {
-  domain_id: number;
-  template_id: number;
+  id: number; // Renamed from domain_id
+  templateId: number; // Renamed from template_id
   name: string;
-  benchmark_private_sector: number;
-  percentile_25: number;
-  percentile_75: number;
-  text_result_low: string;
-  text_result_medium: string;
-  text_result_high: string;
+  benchmarkPrivateSector: number;
+  percentile25: number;
+  percentile75: number;
+  textResultLow: string;
+  textResultMedium: string;
+  textResultHigh: string;
   description: string;
   questions: Question[];
 }
 
 export interface SurveyTemplate {
-  template_id: number;
+  id: number; // Renamed from template_id
   name: string;
   domains: Domain[];
 }
 
 export interface Demographics {
-  unit: string;
-  sector: string;
-  position: string;
-  current_role_time: string;
-  age_range: string;
+  unit?: string;
+  sector?: string;
+  position?: string;
+  current_role_time?: string;
+  age_range?: string;
   health_issue?: 'Sim' | 'Não' | 'Prefiro não dizer';
 }
 
@@ -51,9 +51,9 @@ export interface Respondent {
   id: string; // Firestore document id
   deploymentId: string;
   status: 'pending' | 'started' | 'completed';
-  demographics: Demographics;
-  completedAt: string;
-  answers?: Answer[]; // This will be populated after fetching
+  demographics: Partial<Demographics>; // It can be partial during creation
+  completedAt?: string;
+  answers?: Answer[];
 }
 
 export type SurveyStatus = 'draft' | 'active' | 'suspended' | 'closed' | 'archived';
@@ -67,7 +67,6 @@ export interface SurveyDeployment {
   status: SurveyStatus;
   totalInvited: number;
   totalEmployees: number;
-  respondents?: Respondent[];
 }
 
 export interface Company {
@@ -105,7 +104,7 @@ export interface QuestionAnalysis {
     favorable_perc: number;
     neutral_perc: number;
     unfavorable_perc: number;
-favorable_count: number;
+    favorable_count: number;
     neutral_count: number;
     unfavorable_count: number;
   };
