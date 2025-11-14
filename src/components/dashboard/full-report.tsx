@@ -6,7 +6,6 @@ import DomainsRadarChart from "../charts/domains-radar-chart";
 import DomainScoreGauge from "../charts/domain-score-gauge";
 import QuestionBreakdown from "./question-breakdown";
 import { Separator } from "../ui/separator";
-import { cn } from "@/lib/utils";
 
 interface FullReportProps {
     data: DashboardData;
@@ -15,14 +14,13 @@ interface FullReportProps {
 }
 
 const ReportSection = ({ title, children, className }: { title?: string, children: React.ReactNode, className?: string }) => (
-    <section className={cn("pdf-section space-y-4", className)}>
-        {title && <h2 className="text-2xl font-bold font-headline text-primary">{title}</h2>}
+    <section className={`break-after-page ${className}`}>
+        {title && <h2 className="text-2xl font-bold font-headline text-primary mb-6">{title}</h2>}
         <div className="prose prose-sm lg:prose-base dark:prose-invert max-w-none text-foreground/90">
             {children}
         </div>
     </section>
 );
-
 
 const DomainReportSection = ({ domain }: { domain: DomainAnalysis }) => (
      <div className="mt-8 break-inside-avoid">
@@ -42,7 +40,7 @@ const DomainReportSection = ({ domain }: { domain: DomainAnalysis }) => (
                     benchmark={domain.benchmark_private_sector}
                 />
             </div>
-            <div>
+            <div className="break-inside-avoid">
                 <h4 className="font-bold mb-2 text-center">Análise por Pergunta</h4>
                 <div className="space-y-2">
                 {domain.questions_analysis.map(qa => (
@@ -54,7 +52,6 @@ const DomainReportSection = ({ domain }: { domain: DomainAnalysis }) => (
         <Separator className="my-8" />
      </div>
 );
-
 
 const getDiagnosticText = (domain: DomainAnalysis) => {
     if (domain.domain_score < domain.percentile_25) {
@@ -72,27 +69,8 @@ export default function FullReport({ data, company, deployment }: FullReportProp
 
     return (
         <main className="max-w-4xl mx-auto p-4 sm:p-8 bg-card shadow-lg print:shadow-none">
-            <style jsx global>{`
-                @media print {
-                    body {
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
-                    }
-                    .prose {
-                        font-size: 10pt;
-                    }
-                    h1 { font-size: 24pt; }
-                    h2 { font-size: 18pt; }
-                    h3 { font-size: 14pt; }
-                }
-                @page {
-                    size: A4;
-                    margin: 1.5cm;
-                }
-            `}</style>
-            
             <div className="space-y-12">
-                 <ReportSection className="text-center">
+                 <ReportSection className="text-center break-after-avoid-page">
                     <header>
                         <h1 className="text-3xl font-bold font-headline">Relatório da Pesquisa de Indicadores de Estresse</h1>
                         <p className="text-lg text-muted-foreground">{company.name} - {deploymentMonth} de {deploymentYear}</p>
@@ -135,7 +113,7 @@ export default function FullReport({ data, company, deployment }: FullReportProp
                         <li>Organizações que pontuaram <strong>entre a linha vermelha e a linha verde</strong> pontuaram dentro da média de 50% das organizações.</li>
                         <li>Pontuações <strong>acima da linha verde</strong> são melhores do que 75% das organizações.</li>
                     </ul>
-                    <div className="py-8 not-prose">
+                    <div className="py-8 not-prose break-inside-avoid">
                          <Card>
                             <CardHeader>
                                 <CardTitle>Desempenho Geral vs. Benchmarks</CardTitle>
