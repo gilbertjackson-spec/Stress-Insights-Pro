@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Demographics, Domain, Question } from '@/lib/types';
-import { getMockSurveyTemplate } from '@/lib/mock-data';
+import type { Demographics, Domain, Question, SurveyTemplate } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -13,25 +12,57 @@ import { Progress } from '../ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { addAnswerBatch } from '@/lib/answer-service';
-import { useFirestore } from '@/firebase';
+import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
+import { Skeleton } from '../ui/skeleton';
 
 interface SurveyQuestionnaireProps {
   deploymentId: string;
+  templateId: string;
   demographics: Partial<Demographics>;
   onComplete: () => void;
 }
 
 type AnswersState = Record<string, string>; // question_id: raw_response
 
-export default function SurveyQuestionnaire({ deploymentId, demographics, onComplete }: SurveyQuestionnaireProps) {
+export default function SurveyQuestionnaire({ deploymentId, templateId, demographics, onComplete }: SurveyQuestionnaireProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [template, setTemplate] = useState(getMockSurveyTemplate());
+  
   const [answers, setAnswers] = useState<AnswersState>({});
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [totalSlides, setTotalSlides] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch Survey Template, Domains, and Questions dynamically
+  const templateRef = useMemoFirebase(() => firestore ? doc(firestore, 'survey_templates', templateId) : null, [firestore, templateId]);
+  const { data: template, isLoading: isLoadingTemplate } = useDoc<SurveyTemplate>(templateRef);
+
+  const domainsRef = useMemoFirebase(() => firestore ? collection(firestore, 'survey_templates', templateId, 'domains') : null, [firestore, templateId]);
+  const { data: domains, isLoading: isLoadingDomains } = useCollection<Domain>(domainsRef);
+
+  const [questionsByDomain, setQuestionsByDomain] = useState<Record<string, Question[]>>({});
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
+
+  useEffect(() => {
+    if (!firestore || !domains) return;
+
+    const fetchAllQuestions = async () => {
+        setIsLoadingQuestions(true);
+        const questionsData: Record<string, Question[]> = {};
+        for (const domain of domains) {
+            const questionsRef = collection(firestore, 'survey_templates', templateId, 'domains', domain.id, 'questions');
+            const questionsSnap = await useFirestore.getDocs(questionsRef);
+            questionsData[domain.id] = questionsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Question));
+        }
+        setQuestionsByDomain(questionsData);
+        setIsLoadingQuestions(false);
+    };
+
+    fetchAllQuestions();
+  }, [firestore, domains, templateId]);
+
 
   useEffect(() => {
     if (!api) return;
@@ -50,9 +81,9 @@ export default function SurveyQuestionnaire({ deploymentId, demographics, onComp
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
   
-  const allQuestions = template.domains.flatMap(d => d.questions);
+  const allQuestions = domains ? domains.flatMap(d => questionsByDomain[d.id] || []) : [];
   const totalQuestionsAnswered = Object.keys(answers).length;
-  const progress = (totalQuestionsAnswered / allQuestions.length) * 100;
+  const progress = allQuestions.length > 0 ? (totalQuestionsAnswered / allQuestions.length) * 100 : 0;
 
   const handleSubmit = async () => {
     if (totalQuestionsAnswered < allQuestions.length) {
@@ -64,7 +95,13 @@ export default function SurveyQuestionnaire({ deploymentId, demographics, onComp
         return;
     }
     
-    if (!firestore) return;
+    if (!firestore || !template || !domains) return;
+
+    // Reconstruct the full template object for submission
+    const fullTemplate: SurveyTemplate = {
+      ...template,
+      domains: domains.map(d => ({...d, questions: questionsByDomain[d.id] || []}))
+    }
 
     setIsSubmitting(true);
     try {
@@ -72,7 +109,7 @@ export default function SurveyQuestionnaire({ deploymentId, demographics, onComp
             deploymentId,
             demographics,
             answers,
-            template,
+            template: fullTemplate,
         });
         toast({
             title: 'Respostas Enviadas!',
@@ -94,12 +131,27 @@ export default function SurveyQuestionnaire({ deploymentId, demographics, onComp
   const scrollPrev = useCallback(() => api?.scrollPrev(), [api]);
   const scrollNext = useCallback(() => api?.scrollNext(), [api]);
 
+  const isLoading = isLoadingTemplate || isLoadingDomains || isLoadingQuestions;
   const isLastSlide = currentSlide === totalSlides - 1;
+
+  if (isLoading) {
+    return (
+        <div className="p-8 space-y-4">
+            <Skeleton className="h-8 w-1/2 mx-auto" />
+            <Skeleton className="h-4 w-3/4 mx-auto" />
+            <div className="space-y-4 pt-4">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+            </div>
+        </div>
+    )
+  }
 
   return (
     <div>
         <CardHeader>
-            <CardTitle>Questionário</CardTitle>
+            <CardTitle>{template?.name || 'Questionário'}</CardTitle>
             <CardDescription>Responda a todas as perguntas. Suas respostas são anônimas.</CardDescription>
         </CardHeader>
         <div className="p-4">
@@ -109,12 +161,12 @@ export default function SurveyQuestionnaire({ deploymentId, demographics, onComp
 
         <Carousel setApi={setApi} className="w-full px-12">
             <CarouselContent>
-            {template.domains.map((domain: Domain) => (
+            {domains?.map((domain: Domain) => (
                 <CarouselItem key={domain.id}>
                     <div className="p-1">
                         <h3 className="text-lg font-semibold text-center mb-4">{domain.name}</h3>
                         <div className="space-y-6">
-                        {domain.questions.map((question: Question) => (
+                        {(questionsByDomain[domain.id] || []).map((question: Question) => (
                             <div key={question.id} className="p-4 border rounded-lg bg-secondary/30">
                                 <p className="font-medium mb-4">{question.questionText}</p>
                                 <RadioGroup

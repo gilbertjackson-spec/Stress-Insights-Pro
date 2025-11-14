@@ -100,9 +100,13 @@ export default function SurveyPage() {
           />
         );
       case 'questionnaire':
+        if (!deployment?.templateId) {
+            return <div className="p-8 text-center text-red-500">Erro: Template da pesquisa não encontrado.</div>
+        }
         return (
           <SurveyQuestionnaire 
             deploymentId={deploymentId} 
+            templateId={deployment.templateId}
             demographics={demographics}
             onComplete={handleSurveyComplete} 
           />
