@@ -167,12 +167,14 @@ export default function CompanyDashboard({ company }: { company: Company }) {
         if (!firestore) return null;
         return query(
             collection(firestore, 'survey_deployments'),
-            where('companyId', '==', company.id),
-            where('status', '!=', 'archived')
+            where('companyId', '==', company.id)
         );
     }, [firestore, company.id]);
 
-    const { data: deployments, isLoading, refetch } = useCollection<Omit<SurveyDeployment, 'respondentCount'>>(deploymentsQuery);
+    const { data: allDeployments, isLoading, refetch } = useCollection<Omit<SurveyDeployment, 'respondentCount'>>(deploymentsQuery);
+    
+    // Filter out archived deployments on the client side
+    const deployments = allDeployments?.filter(d => d.status !== 'archived');
     
     const handleAction = () => {
         if(refetch) refetch();
