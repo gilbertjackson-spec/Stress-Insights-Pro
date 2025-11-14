@@ -1,3 +1,5 @@
+'use client';
+
 import type { Answer, DashboardData, Demographics, Domain, Question, Respondent, SurveyDeployment, SurveyStatus, SurveyTemplate } from './types';
 import { getDocs, collection, doc, getDoc, Firestore } from 'firebase/firestore';
 
@@ -47,7 +49,20 @@ async function getFullSurveyTemplate(firestore: Firestore, templateId: string): 
   
   const domains: Domain[] = [];
   for (const domainDoc of domainsSnap.docs) {
-    const domainData = { ...domainDoc.data(), id: domainDoc.id, questions: [] } as Domain;
+    const data = domainDoc.data();
+    const domainData: Domain = {
+      id: domainDoc.id,
+      templateId: templateId,
+      name: data.name,
+      benchmarkPrivateSector: data.benchmarkPrivateSector,
+      percentile25: data.percentile25,
+      percentile75: data.percentile75,
+      textResultLow: data.textResultLow,
+      textResultMedium: data.textResultMedium,
+      textResultHigh: data.textResultHigh,
+      descriptionText: data.descriptionText,
+      questions: [], // questions will be populated next
+    };
     
     const questionsRef = collection(domainDoc.ref, 'questions');
     const questionsSnap = await getDocs(questionsRef);
@@ -135,7 +150,7 @@ function analyzeDomain(domain: Domain, respondents: Respondent[]): DomainAnalysi
 
   if (validQuestionAnalyses.length > 0) {
     strong_point = [...validQuestionAnalyses].sort((a, b) => b.average_score - a.average_score)[0];
-    weak_point = [...validQuestionAnalyses].sort((a, b) => a.average_score - b.average_score)[0];
+    weak_point = [...validQuestionAnalyses].sort((a, b) => a.average_score - b.score)[0];
   }
 
   return {
@@ -211,5 +226,3 @@ export async function getDashboardData(firestore: Firestore, deploymentId: strin
     demographic_options
   };
 }
-
-    
