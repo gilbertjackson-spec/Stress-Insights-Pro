@@ -9,9 +9,11 @@ import { getDashboardData } from '@/lib/analysis';
 import FullReport from '@/components/dashboard/full-report';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
+import { Terminal, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export default function FullReportPage() {
   const params = useParams();
@@ -20,6 +22,7 @@ export default function FullReportPage() {
 
   const [reportData, setReportData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const deploymentRef = useMemoFirebase(() => {
@@ -55,9 +58,66 @@ export default function FullReportPage() {
     fetchData();
   }, [deploymentId, firestore]);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handleDownloadPdf = async () => {
+    const reportElement = document.getElementById('full-report-content');
+    if (!reportElement) return;
+
+    setIsGeneratingPdf(true);
+
+    try {
+        // Use html2canvas to render the element to a canvas
+        const canvas = await html2canvas(reportElement, {
+            scale: 2, // Increase scale for better quality
+            useCORS: true,
+            onclone: (document) => {
+                // This allows you to modify the cloned document before rendering
+                // For example, ensuring all styles are applied
+            }
+        });
+
+        // Get image data from canvas
+        const imgData = canvas.toDataURL('image/png');
+
+        // Create a new jsPDF instance
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4',
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        
+        let imgHeight = pdfWidth / ratio;
+        let heightLeft = imgHeight;
+
+        let position = 0;
+
+        // Add the first page
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+
+        // Add new pages if content overflows
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            heightLeft -= pdfHeight;
+        }
+        
+        // Save the PDF
+        pdf.save('Relatorio_Stress_Insights.pdf');
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        setError("Não foi possível gerar o PDF. Tente novamente.");
+    } finally {
+        setIsGeneratingPdf(false);
+    }
+};
+
 
   if (isLoading) {
     return (
@@ -71,7 +131,7 @@ export default function FullReportPage() {
     );
   }
 
-  if (error) {
+  if (error && !isGeneratingPdf) { // Don't show this error if it's just a PDF generation error
     return (
       <div className="max-w-4xl mx-auto p-4 sm:p-8">
         <Alert variant="destructive">
@@ -104,11 +164,14 @@ export default function FullReportPage() {
                     Voltar ao Dashboard
                 </Link>
             </Button>
-            <Button onClick={handlePrint}>
-                Imprimir ou Salvar PDF
+            <Button onClick={handleDownloadPdf} disabled={isGeneratingPdf}>
+                {isGeneratingPdf && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isGeneratingPdf ? 'Gerando PDF...' : 'Salvar como PDF'}
             </Button>
         </div>
-      <FullReport data={reportData} company={company} deployment={deployment} />
+      <div id="full-report-content">
+        <FullReport data={reportData} company={company} deployment={deployment} />
+      </div>
     </div>
   );
 }
