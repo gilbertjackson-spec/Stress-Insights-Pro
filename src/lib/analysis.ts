@@ -1,5 +1,4 @@
-import { getMockSurveyTemplate } from './mock-data';
-import type { Answer, DashboardData, Demographics, Domain, DomainAnalysis, QuestionAnalysis, Respondent, SurveyDeployment, SurveyStatus } from './types';
+import type { Answer, DashboardData, Demographics, Domain, Question, Respondent, SurveyDeployment, SurveyStatus, SurveyTemplate } from './types';
 import { getDocs, collection, doc, getDoc, Firestore } from 'firebase/firestore';
 
 export interface Filters {
@@ -32,6 +31,33 @@ async function getRespondentsWithAnswers(firestore: Firestore, deploymentId: str
     }
 
     return respondents;
+}
+
+// Helper to fetch the full survey template (template -> domains -> questions)
+async function getFullSurveyTemplate(firestore: Firestore, templateId: string): Promise<SurveyTemplate> {
+  const templateRef = doc(firestore, 'survey_templates', templateId);
+  const templateSnap = await getDoc(templateRef);
+  if (!templateSnap.exists()) {
+    throw new Error(`Survey template with id ${templateId} not found.`);
+  }
+  const templateData = { ...templateSnap.data(), id: templateSnap.id } as SurveyTemplate;
+
+  const domainsRef = collection(templateRef, 'domains');
+  const domainsSnap = await getDocs(domainsRef);
+  
+  const domains: Domain[] = [];
+  for (const domainDoc of domainsSnap.docs) {
+    const domainData = { ...domainDoc.data(), id: domainDoc.id, questions: [] } as Domain;
+    
+    const questionsRef = collection(domainDoc.ref, 'questions');
+    const questionsSnap = await getDocs(questionsRef);
+    
+    domainData.questions = questionsSnap.docs.map(qDoc => ({ ...qDoc.data(), id: qDoc.id } as Question));
+    domains.push(domainData);
+  }
+
+  templateData.domains = domains;
+  return templateData;
 }
 
 
@@ -142,8 +168,8 @@ export async function getDashboardData(firestore: Firestore, deploymentId: strin
   // 2. Fetch all respondents and their answers for this deployment
   const allRespondents = await getRespondentsWithAnswers(firestore, deploymentId);
   
-  // 3. Get the survey template (still from mock, can be moved to Firestore later)
-  const template = getMockSurveyTemplate();
+  // 3. Get the full survey template dynamically from Firestore
+  const template = await getFullSurveyTemplate(firestore, deployment.templateId);
 
   // 4. Filter respondents based on the dashboard filters
   const filteredRespondents = filterRespondents(allRespondents, filters);
@@ -185,3 +211,5 @@ export async function getDashboardData(firestore: Firestore, deploymentId: strin
     demographic_options
   };
 }
+
+    

@@ -343,208 +343,47 @@
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "companies/{companyId}",
-        "definition": {
-          "entityName": "Company",
-          "schema": {
-            "$ref": "#/backend/entities/Company"
-          },
-          "description": "Stores company information. Only SuperAdmins can create or update company documents. ClientAdmins can read their own company document.",
-          "params": [
-            {
-              "name": "companyId",
-              "description": "The unique identifier of the company."
-            }
-          ]
-        }
-      },
-      {
-        "path": "companies/{companyId}/units/{unitId}",
-        "definition": {
-          "entityName": "Unit",
-          "schema": {
-            "$ref": "#/backend/entities/Unit"
-          },
-          "description": "Stores unit information within a company. ClientAdmins can manage units within their company.",
-          "params": [
-            {
-              "name": "companyId",
-              "description": "The unique identifier of the company."
-            },
-            {
-              "name": "unitId",
-              "description": "The unique identifier of the unit."
-            }
-          ]
-        }
-      },
-      {
-        "path": "companies/{companyId}/units/{unitId}/sectors/{sectorId}",
-        "definition": {
-          "entityName": "Sector",
-          "schema": {
-            "$ref": "#/backend/entities/Sector"
-          },
-          "description": "Stores sector information within a unit. ClientAdmins can manage sectors within their company.",
-          "params": [
-            {
-              "name": "companyId",
-              "description": "The unique identifier of the company."
-            },
-            {
-              "name": "unitId",
-              "description": "The unique identifier of the unit."
-            },
-            {
-              "name": "sectorId",
-              "description": "The unique identifier of the sector."
-            }
-          ]
-        }
-      },
-      {
-        "path": "companies/{companyId}/positions/{positionId}",
-        "definition": {
-          "entityName": "Position",
-          "schema": {
-            "$ref": "#/backend/entities/Position"
-          },
-          "description": "Stores job position information for a company. ClientAdmins can manage positions within their company.",
-          "params": [
-            {
-              "name": "companyId",
-              "description": "The unique identifier of the company."
-            },
-            {
-              "name": "positionId",
-              "description": "The unique identifier of the position."
-            }
-          ]
-        }
-      },
-      {
-        "path": "survey_templates/{templateId}",
-        "definition": {
-          "entityName": "SurveyTemplate",
-          "schema": {
-            "$ref": "#/backend/entities/SurveyTemplate"
-          },
-          "description": "Stores survey templates. Only SuperAdmins can manage survey templates.",
-          "params": [
-            {
-              "name": "templateId",
-              "description": "The unique identifier of the survey template."
-            }
-          ]
-        }
-      },
-      {
-        "path": "survey_templates/{templateId}/domains/{domainId}",
-        "definition": {
-          "entityName": "Domain",
-          "schema": {
-            "$ref": "#/backend/entities/Domain"
-          },
-          "description": "Stores domains within a survey template. Only SuperAdmins can manage domains.",
-          "params": [
-            {
-              "name": "templateId",
-              "description": "The unique identifier of the survey template."
-            },
-            {
-              "name": "domainId",
-              "description": "The unique identifier of the domain."
-            }
-          ]
-        }
-      },
-      {
-        "path": "survey_templates/{templateId}/domains/{domainId}/questions/{questionId}",
-        "definition": {
-          "entityName": "Question",
-          "schema": {
-            "$ref": "#/backend/entities/Question"
-          },
-          "description": "Stores questions within a domain. Only SuperAdmins can manage questions.",
-          "params": [
-            {
-              "name": "templateId",
-              "description": "The unique identifier of the survey template."
-            },
-            {
-              "name": "domainId",
-              "description": "The unique identifier of the domain."
-            },
-            {
-              "name": "questionId",
-              "description": "The unique identifier of the question."
-            }
-          ]
-        }
-      },
-      {
-        "path": "survey_deployments/{deploymentId}",
-        "definition": {
-          "entityName": "SurveyDeployment",
-          "schema": {
-            "$ref": "#/backend/entities/SurveyDeployment"
-          },
-          "description": "Stores survey deployments for companies. Includes denormalized 'companyId' for authorization independence. ClientAdmins can manage deployments for their company.",
-          "params": [
-            {
-              "name": "deploymentId",
-              "description": "The unique identifier of the survey deployment."
-            }
-          ]
-        }
-      },
-      {
-        "path": "survey_deployments/{deploymentId}/respondents/{respondentId}",
-        "definition": {
-          "entityName": "SurveyRespondent",
-          "schema": {
-            "$ref": "#/backend/entities/SurveyRespondent"
-          },
-          "description": "Stores anonymous survey respondents.  Includes denormalized 'deploymentId' for authorization independence. The token field guarantees security of the anonymous access link.",
-          "params": [
-            {
-              "name": "deploymentId",
-              "description": "The unique identifier of the survey deployment."
-            },
-            {
-              "name": "respondentId",
-              "description": "The unique identifier of the survey respondent."
-            }
-          ]
-        }
-      },
-      {
-        "path": "survey_deployments/{deploymentId}/respondents/{respondentId}/answers/{answerId}",
-        "definition": {
-          "entityName": "Answer",
-          "schema": {
-            "$ref": "#/backend/entities/Answer"
-          },
-          "description": "Stores answers to survey questions. Includes denormalized 'respondentId' and implicitly 'deploymentId' for authorization independence.",
-          "params": [
-            {
-              "name": "deploymentId",
-              "description": "The unique identifier of the survey deployment."
-            },
-            {
-              "name": "respondentId",
-              "description": "The unique identifier of the survey respondent."
-            },
-            {
-              "name": "answerId",
-              "description": "The unique identifier of the answer."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "This Firestore structure prioritizes authorization independence and efficient querying, crucial for generating the stress analysis reports and dashboards. \n\n**Authorization Independence:** Achieved through denormalization.  For example, `SurveyDeployment` documents include the `companyId`, eliminating the need for security rules to traverse up to the `Companies` collection.  Similarly, if access to survey results were dependent on the unit or sector, these would be denormalized onto the `SurveyRespondent` document.\n\n**QAPs Support:**\n\n*   **Secure `list` operations:** Each collection is structurally segregated based on access needs. For instance, survey templates are managed by SuperAdmins and reside in the `survey_templates` collection, separate from company-specific deployments.\n*   **Anonymous access links:** The `SurveyRespondent` and `Answer` collections use anonymous authentication. Security rules can validate that only users with a valid token can create or update their own documents, without relying on user IDs or custom claims.\n*   **DBAC:** Roles are checked by existence rather than content. This prevents the need to fetch documents to check roles.\n*   **Predictive Insights** The data structure allows to calculate the average scores by domain. The denormalized data into the documents allows to generate predictive insights at company and sector levels. This would require aggregation queries to fetch all the answers from the same respondents on a company, sector or unit level."
+    "/companies/{companyId}": {
+      "schema": "Company",
+      "description": "Stores company information. Only SuperAdmins can create or update company documents. ClientAdmins can read their own company document."
+    },
+    "/companies/{companyId}/units/{unitId}": {
+      "schema": "Unit",
+      "description": "Stores unit information within a company. ClientAdmins can manage units within their company."
+    },
+    "/companies/{companyId}/units/{unitId}/sectors/{sectorId}": {
+      "schema": "Sector",
+      "description": "Stores sector information within a unit. ClientAdmins can manage sectors within their company."
+    },
+    "/companies/{companyId}/positions/{positionId}": {
+      "schema": "Position",
+      "description": "Stores job position information for a company. ClientAdmins can manage positions within their company."
+    },
+    "/survey_templates/{templateId}": {
+      "schema": "SurveyTemplate",
+      "description": "Stores survey templates. Only SuperAdmins can manage survey templates."
+    },
+    "/survey_templates/{templateId}/domains/{domainId}": {
+      "schema": "Domain",
+      "description": "Stores domains within a survey template. Only SuperAdmins can manage domains."
+    },
+    "/survey_templates/{templateId}/domains/{domainId}/questions/{questionId}": {
+      "schema": "Question",
+      "description": "Stores questions within a domain. Only SuperAdmins can manage questions."
+    },
+    "/survey_deployments/{deploymentId}": {
+      "schema": "SurveyDeployment",
+      "description": "Stores survey deployments for companies. Includes denormalized 'companyId' for authorization independence. ClientAdmins can manage deployments for their company."
+    },
+    "/survey_deployments/{deploymentId}/respondents/{respondentId}": {
+      "schema": "SurveyRespondent",
+      "description": "Stores anonymous survey respondents. Includes denormalized 'deploymentId' for authorization independence. The token field guarantees security of the anonymous access link."
+    },
+    "/survey_deployments/{deploymentId}/respondents/{respondentId}/answers/{answerId}": {
+      "schema": "Answer",
+      "description": "Stores answers to survey questions. Includes denormalized 'respondentId' and implicitly 'deploymentId' for authorization independence."
+    }
   }
 }
+
+    
