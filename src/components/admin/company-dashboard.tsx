@@ -8,8 +8,10 @@ import { PlusCircle, FileText } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Skeleton } from '../ui/skeleton';
 import { Badge } from '../ui/badge';
-import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { AddSurveyForm } from './add-survey-form';
+import { useState } from 'react';
 
 interface Company {
     id: string;
@@ -30,6 +32,7 @@ interface CompanyDashboardProps {
 
 export default function CompanyDashboard({ company }: CompanyDashboardProps) {
     const firestore = useFirestore();
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
     const deploymentsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -54,6 +57,19 @@ export default function CompanyDashboard({ company }: CompanyDashboardProps) {
         }
     };
 
+    const getStatusLabel = (status: SurveyDeployment['status']) => {
+        switch (status) {
+            case 'active':
+                return 'Ativa';
+            case 'closed':
+                return 'Fechada';
+            case 'draft':
+                return 'Rascunho';
+            default:
+                return status;
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div>
@@ -74,10 +90,20 @@ export default function CompanyDashboard({ company }: CompanyDashboardProps) {
                             Veja todas as pesquisas aplicadas para esta empresa.
                         </CardDescription>
                     </div>
-                    <Button>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Criar Nova Pesquisa
-                    </Button>
+                    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Criar Nova Pesquisa
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[525px]">
+                            <DialogHeader>
+                                <DialogTitle>Criar Nova Pesquisa</DialogTitle>
+                            </DialogHeader>
+                            <AddSurveyForm companyId={company.id} onFinished={() => setIsAddDialogOpen(false)} />
+                        </DialogContent>
+                    </Dialog>
                 </CardHeader>
                 <CardContent>
                     <div className="border rounded-lg">
@@ -106,7 +132,7 @@ export default function CompanyDashboard({ company }: CompanyDashboardProps) {
                                             <TableCell className="font-medium">Indicadores de Estresse HSE 2025</TableCell>
                                             <TableCell>{new Date(dep.startDate).toLocaleDateString()} - {new Date(dep.endDate).toLocaleDateString()}</TableCell>
                                             <TableCell>
-                                                <Badge variant={getStatusVariant(dep.status)} className="capitalize">{dep.status}</Badge>
+                                                <Badge variant={getStatusVariant(dep.status)} className="capitalize">{getStatusLabel(dep.status)}</Badge>
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <Button asChild variant="outline" size="sm">
