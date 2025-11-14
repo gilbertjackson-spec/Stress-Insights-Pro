@@ -56,7 +56,7 @@ export interface Respondent {
 export type SurveyStatus = 'draft' | 'active' | 'suspended' | 'closed';
 
 export interface SurveyDeployment {
-  deployment_id: number;
+  id: string; // Firestore document ID
   template_id: number;
   company_id: number;
   start_date: string;
@@ -67,10 +67,22 @@ export interface SurveyDeployment {
 }
 
 export interface Company {
-  company_id: number;
-  name: string;
-  deployments: SurveyDeployment[];
+    id: string; // Firestore document ID
+    name: string;
 }
+
+export interface Unit {
+    id: string; // Firestore document ID
+    name: string;
+    companyId: string;
+}
+
+export interface Sector {
+    id: string; // Firestore document ID
+    name: string;
+    unitId: string;
+}
+
 
 // Analysis Types
 

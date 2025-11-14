@@ -52,7 +52,7 @@ export default function CompanyDashboard({ company }: CompanyDashboardProps) {
                 <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">
                     {company.name}
                 </h1>
-                <p className="text-muted-foreground">Gerencie as pesquisas e veja os resultados.</p>
+                <p className="text-muted-foreground">Gerencie as pesquisas e a estrutura organizacional da empresa.</p>
             </div>
 
             <Card>
