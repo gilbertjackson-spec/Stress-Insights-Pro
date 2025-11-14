@@ -72,13 +72,4 @@ const surveyTemplate: SurveyTemplate = {
   })),
 };
 
-export const DEMO_OPTIONS = {
-  units: ['Unidade 01', 'Unidade 02', 'Unidade 03'],
-  sectors: ['Setor 01', 'Setor 02', 'Setor 03', 'Setor 04', 'Setor 05'],
-  positions: ['Cargo 01', 'Cargo 02', 'Cargo 03'],
-  current_role_times: ['Menos de 1 ano', 'Entre 1 e 2 anos', 'Entre 2 e 5 anos', 'Mais de 5 anos'],
-  age_ranges: ['18-24', '25-34', '35-44', '45-54', '55+'],
-  health_issues: ['Sim', 'Não', 'Prefiro não dizer'] as ('Sim' | 'Não' | 'Prefiro não dizer')[],
-};
-
 export const getMockSurveyTemplate = (): SurveyTemplate => surveyTemplate;
