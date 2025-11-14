@@ -20,29 +20,15 @@ export function AppSidebar() {
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="/" passHref>
+            <Link href="/admin/companies" passHref>
               <SidebarMenuButton
                 tooltip="Dashboard"
-                isActive={pathname === "/"}
+                isActive={pathname === "/" || pathname.startsWith("/admin/companies")}
                 asChild
               >
                 <div>
                   <LayoutDashboard />
                   Dashboard
-                </div>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/admin/companies" passHref>
-              <SidebarMenuButton
-                tooltip="Empresas"
-                isActive={pathname.startsWith("/admin/companies")}
-                asChild
-              >
-                <div>
-                  <Building />
-                  Empresas
                 </div>
               </SidebarMenuButton>
             </Link>

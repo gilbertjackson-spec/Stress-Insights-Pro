@@ -1,19 +1,18 @@
 'use client';
 
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import CompaniesTable from '@/components/admin/companies-table';
-import { useMemo } from 'react';
 
 export default function CompaniesPage() {
   const firestore = useFirestore();
 
-  const companiesRef = useMemo(() => {
+  const companiesRef = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'companies');
   }, [firestore]);
 
-  const { data: companies, isLoading } = useCollection(companiesRef as any);
+  const { data: companies, isLoading } = useCollection(companiesRef);
 
   return (
     <div className="p-4 sm:p-8 pt-6">
