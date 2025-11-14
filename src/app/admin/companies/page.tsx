@@ -14,14 +14,12 @@ export default function CompaniesPage() {
     return collection(firestore, 'companies');
   }, [firestore, isUserLoading]);
 
-  const { data: companies, isLoading: areCompaniesLoading } = useCollection(companiesRef);
+  const { data: companies, isLoading: areCompaniesLoading, refetch } = useCollection(companiesRef);
   
   // Combine user loading and collection loading states
   const isLoading = isUserLoading || areCompaniesLoading;
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <CompaniesTable companies={companies || []} isLoading={isLoading} />
-    </div>
+    <CompaniesTable companies={companies || []} isLoading={isLoading} />
   );
 }

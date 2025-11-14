@@ -1,7 +1,7 @@
 'use client';
 
-import { addDocumentNonBlocking } from '@/firebase';
-import { collection, Firestore } from 'firebase/firestore';
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, doc, Firestore } from 'firebase/firestore';
 
 export const addCompany = async (firestore: Firestore, name: string) => {
   if (!name) {
@@ -9,15 +9,19 @@ export const addCompany = async (firestore: Firestore, name: string) => {
   }
   const companiesCollection = collection(firestore, 'companies');
   
-  // Using the non-blocking function. It will handle errors via the global emitter.
-  // We can still await it if we need the returned document reference, but for a simple "add"
-  // and toast notification, we can let it run in the background.
   const docRefPromise = addDocumentNonBlocking(companiesCollection, {
     name: name,
     createdAt: new Date(),
   });
 
-  // You can optionally do something with the promise, e.g., get the new ID
   const docRef = await docRefPromise;
   return docRef;
 };
+
+export const updateCompany = async (firestore: Firestore, companyId: string, name: string) => {
+    if (!companyId || !name) {
+        throw new Error('ID da empresa e nome são obrigatórios para atualizar.');
+    }
+    const companyRef = doc(firestore, 'companies', companyId);
+    updateDocumentNonBlocking(companyRef, { name });
+}
