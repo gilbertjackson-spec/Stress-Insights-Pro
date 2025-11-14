@@ -38,183 +38,77 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows SuperAdmins to manage companies and ClientAdmins to read their own company data.
-     * @path /companies/{companyId}
-     * @allow (read): if isSignedIn() - Allows any signed-in user to read company data.
-     * @allow (create): if false - Prevents anyone from creating company data directly.
-     * @allow (update): if false - Prevents anyone from updating company data directly.
-     * @allow (delete): if false - Prevents anyone from deleting company data directly.
-     * @deny (create): if true - Prevents non-SuperAdmins from creating company documents.
-     * @deny (update): if true - Prevents non-SuperAdmins from updating company documents.
-     * @deny (delete): if true - Prevents non-SuperAdmins from deleting company documents.
-     * @principle Enforces role-based access control for company management.
+     * @description Allows any signed-in user to manage company data.
+     * This is a simplified rule for initial development.
      */
     match /companies/{companyId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update: if false;
-      allow delete: if false;
+      allow read, write: if isSignedIn();
     }
 
     /**
-     * @description Allows ClientAdmins to manage units within their company.
-     * @path /companies/{companyId}/units/{unitId}
-     * @allow (read): if isSignedIn() - Allows any signed-in user to read unit data.
-     * @allow (create): if false - Prevents anyone from creating unit data directly.
-     * @allow (update): if false - Prevents anyone from updating unit data directly.
-     * @allow (delete): if false - Prevents anyone from deleting unit data directly.
-     * @deny (create): if true - Prevents non-ClientAdmins from creating unit documents.
-     * @deny (update): if true - Prevents non-ClientAdmins from updating unit documents.
-     * @deny (delete): if true - Prevents non-ClientAdmins from deleting unit documents.
-     * @principle Enforces role-based access control for unit management.
+     * @description Allows any signed-in user to manage units within a company.
+     * This is a simplified rule for initial development.
      */
     match /companies/{companyId}/units/{unitId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read, write: if isSignedIn();
     }
 
     /**
-     * @description Allows ClientAdmins to manage sectors within their company.
-     * @path /companies/{companyId}/units/{unitId}/sectors/{sectorId}
-     * @allow (read): if isSignedIn() - Allows any signed-in user to read sector data.
-     * @allow (create): if false - Prevents anyone from creating sector data directly.
-     * @allow (update): if false - Prevents anyone from updating sector data directly.
-     * @allow (delete): if false - Prevents anyone from deleting sector data directly.
-     * @deny (create): if true - Prevents non-ClientAdmins from creating sector documents.
-     * @deny (update): if true - Prevents non-ClientAdmins from updating sector documents.
-     * @deny (delete): if true - Prevents non-ClientAdmins from deleting sector documents.
-     * @principle Enforces role-based access control for sector management.
+     * @description Allows any signed-in user to manage sectors within a company.
+     * This is a simplified rule for initial development.
      */
     match /companies/{companyId}/units/{unitId}/sectors/{sectorId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read, write: if isSignedIn();
     }
 
     /**
-     * @description Allows SuperAdmins to manage survey templates.
-     * @path /survey_templates/{templateId}
-     * @allow (read): if isSignedIn() - Allows any signed-in user to read survey template data.
-     * @allow (create): if false - Prevents anyone from creating survey template data directly.
-     * @allow (update): if false - Prevents anyone from updating survey template data directly.
-     * @allow (delete): if false - Prevents anyone from deleting survey template data directly.
-     * @deny (create): if true - Prevents non-SuperAdmins from creating survey template documents.
-     * @deny (update): if true - Prevents non-SuperAdmins from updating survey template documents.
-     * @deny (delete): if true - Prevents non-SuperAdmins from deleting survey template documents.
-     * @principle Enforces role-based access control for survey template management.
+     * @description Allows any signed-in user to manage survey templates.
+     * This is a simplified rule for initial development.
      */
     match /survey_templates/{templateId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read, write: if isSignedIn();
     }
 
     /**
-     * @description Allows SuperAdmins to manage domains within survey templates.
-     * @path /survey_templates/{templateId}/domains/{domainId}
-     * @allow (read): if isSignedIn() - Allows any signed-in user to read domain data.
-     * @allow (create): if false - Prevents anyone from creating domain data directly.
-     * @allow (update): if false - Prevents anyone from updating domain data directly.
-     * @allow (delete): if false - Prevents anyone from deleting domain data directly.
-     * @deny (create): if true - Prevents non-SuperAdmins from creating domain documents.
-     * @deny (update): if true - Prevents non-SuperAdmins from updating domain documents.
-     * @deny (delete): if true - Prevents non-SuperAdmins from deleting domain documents.
-     * @principle Enforces role-based access control for domain management.
+     * @description Allows any signed-in user to manage domains within survey templates.
+     * This is a simplified rule for initial development.
      */
     match /survey_templates/{templateId}/domains/{domainId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read, write: if isSignedIn();
     }
 
     /**
-     * @description Allows SuperAdmins to manage questions within domains.
-     * @path /survey_templates/{templateId}/domains/{domainId}/questions/{questionId}
-     * @allow (read): if isSignedIn() - Allows any signed-in user to read question data.
-     * @allow (create): if false - Prevents anyone from creating question data directly.
-     * @allow (update): if false - Prevents anyone from updating question data directly.
-     * @allow (delete): if false - Prevents anyone from deleting question data directly.
-     * @deny (create): if true - Prevents non-SuperAdmins from creating question documents.
-     * @deny (update): if true - Prevents non-SuperAdmins from updating question documents.
-     * @deny (delete): if true - Prevents non-SuperAdmins from deleting question documents.
-     * @principle Enforces role-based access control for question management.
+     * @description Allows any signed-in user to manage questions within domains.
+     * This is a simplified rule for initial development.
      */
     match /survey_templates/{templateId}/domains/{domainId}/questions/{questionId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read, write: if isSignedIn();
     }
 
     /**
-     * @description Allows ClientAdmins to manage survey deployments for their company.
-     * @path /survey_deployments/{deploymentId}
-     * @allow (read): if isSignedIn() - Allows any signed-in user to read survey deployment data.
-     * @allow (create): if false - Prevents anyone from creating survey deployment data directly.
-     * @allow (update): if false - Prevents anyone from updating survey deployment data directly.
-     * @allow (delete): if false - Prevents anyone from deleting survey deployment data directly.
-     * @deny (create): if true - Prevents non-ClientAdmins from creating survey deployment documents.
-     * @deny (update): if true - Prevents non-ClientAdmins from updating survey deployment documents.
-     * @deny (delete): if true - Prevents non-ClientAdmins from deleting survey deployment documents.
-     * @principle Enforces role-based access control for survey deployment management.
+     * @description Allows signed-in users to manage survey deployments.
+     * This rule permits creating and reading survey deployments, which is necessary
+     * for the admin dashboard functionality.
      */
     match /survey_deployments/{deploymentId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow read, create: if isSignedIn();
+      allow update, delete: if false; // Keep update/delete restricted for now
     }
 
     /**
-     * @description Allows anonymous survey respondents to manage their own data using a signed token.
-     * @path /survey_deployments/{deploymentId}/respondents/{respondentId}
-     * @allow (read): if true - Allows anyone to read survey respondent data.
-     * @allow (create): if isSignedIn() - Allows any signed-in user to create survey respondent data.
-     * @allow (update): if false - Prevents anyone from updating survey respondent data directly.
-     * @allow (delete): if false - Prevents anyone from deleting survey respondent data directly.
-     * @deny (create): if true - Prevents anonymous users from creating survey respondent documents.
-     * @deny (update): if true - Prevents anonymous users from updating survey respondent documents.
-     * @deny (delete): if true - Prevents anonymous users from deleting survey respondent documents.
-     * @principle Enforces token-based access control for anonymous survey respondents.
+     * @description Allows anonymous survey respondents to manage their own data.
+     * This is a simplified rule for initial development.
      */
     match /survey_deployments/{deploymentId}/respondents/{respondentId} {
-      allow get: if true;
-      allow list: if false;
-      allow create: if isSignedIn();
-      allow update: if false;
-      allow delete: if false;
+      allow read, write: if isSignedIn();
     }
 
     /**
-     * @description Allows anonymous survey respondents to manage their answers using a signed token.
-     * @path /survey_deployments/{deploymentId}/respondents/{respondentId}/answers/{answerId}
-     * @allow (read): if true - Allows anyone to read answer data.
-     * @allow (create): if isSignedIn() - Allows any signed-in user to create answer data.
-     * @allow (update): if false - Prevents anyone from updating answer data directly.
-     * @allow (delete): if false - Prevents anyone from deleting answer data directly.
-     * @deny (create): if true - Prevents anonymous users from creating answer documents.
-     * @deny (update): if true - Prevents anonymous users from updating answer documents.
-     * @deny (delete): if true - Prevents anonymous users from deleting answer documents.
-     * @principle Enforces token-based access control for anonymous survey respondents' answers.
+     * @description Allows anonymous survey respondents to manage their answers.
+     * This is a simplified rule for initial development.
      */
     match /survey_deployments/{deploymentId}/respondents/{respondentId}/answers/{answerId} {
-      allow get: if true;
-      allow list: if false;
-      allow create: if isSignedIn();
-      allow update: if false;
-      allow delete: if false;
+      allow read, write: if isSignedIn();
     }
   }
 
@@ -222,4 +116,3 @@ service cloud.firestore {
     return request.auth != null;
   }
 }
-    
