@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditProfileDialogProps {
   isOpen: boolean;
@@ -26,7 +27,7 @@ export function EditProfileDialog({ isOpen, onOpenChange, onSave }: EditProfileD
   const [avatarUrl, setAvatarUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const defaultAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
-
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
@@ -35,6 +36,25 @@ export function EditProfileDialog({ isOpen, onOpenChange, onSave }: EditProfileD
     }
   }, [isOpen, defaultAvatar]);
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        toast({
+            variant: "destructive",
+            title: "Arquivo muito grande",
+            description: "Por favor, escolha uma imagem com menos de 2MB.",
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
   const handleSave = () => {
     setIsLoading(true);
     // Simulate a network request
@@ -61,16 +81,16 @@ export function EditProfileDialog({ isOpen, onOpenChange, onSave }: EditProfileD
                 <AvatarFallback>U</AvatarFallback>
             </Avatar>
             <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="avatar-url">URL da Imagem do Avatar</Label>
+                <Label htmlFor="avatar-file">Carregar nova imagem</Label>
                 <Input
-                    id="avatar-url"
-                    type="url"
-                    placeholder="https://exemplo.com/sua-imagem.png"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
+                    id="avatar-file"
+                    type="file"
+                    accept="image/png, image/jpeg, image/gif"
+                    onChange={handleFileChange}
+                    className="cursor-pointer file:cursor-pointer file:text-primary file:font-semibold"
                 />
                 <p className="text-sm text-muted-foreground">
-                    Cole o link para a nova imagem do seu avatar.
+                    Escolha um arquivo de imagem (JPG, PNG, GIF) de até 2MB.
                 </p>
             </div>
           </div>
