@@ -5,6 +5,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { usePathname } from 'next/navigation';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -66,6 +67,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     isUserLoading: true, // Start loading until first auth event
     userError: null,
   });
+  const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith('/admin');
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
@@ -81,12 +84,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       (firebaseUser) => { // Auth state determined
         if (firebaseUser) {
           setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
-        } else {
-          // If no user, sign in anonymously
+        } else if (isAdminRoute) {
+          // If no user AND we are on an admin route, sign in anonymously.
           signInAnonymously(auth).catch((error) => {
             console.error("Anonymous sign-in failed:", error);
             setUserAuthState({ user: null, isUserLoading: false, userError: error });
           });
+        } else {
+           // If not an admin route and no user, we don't need to do anything.
+           setUserAuthState({ user: null, isUserLoading: false, userError: null });
         }
       },
       (error) => { // Auth listener error
@@ -95,7 +101,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe(); // Cleanup
-  }, [auth]); // Depends on the auth instance
+  }, [auth, isAdminRoute]); // Depends on the auth instance and route
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {

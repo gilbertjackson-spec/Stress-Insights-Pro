@@ -2,36 +2,18 @@
  * @fileoverview Firestore Security Rules for the stress survey system.
  *
  * Core Philosophy:
- * This ruleset enforces a role-based access control (RBAC) model with denormalization
- * to ensure authorization independence and efficient querying.  SuperAdmins have
- * broad access, while ClientAdmins are restricted to managing data within their
- * own company context. Anonymous access is supported for survey respondents via
- * signed tokens.
- *
- * Data Structure:
- * The data is organized hierarchically:
- * - /companies/{companyId}: Company information.
- * - /companies/{companyId}/units/{unitId}: Units within a company.
- * - /companies/{companyId}/units/{unitId}/sectors/{sectorId}: Sectors within a unit.
- * - /survey_templates/{templateId}: Survey templates (managed by SuperAdmins).
- * - /survey_templates/{templateId}/domains/{domainId}: Domains within a survey template.
- * - /survey_templates/{templateId}/domains/{domainId}/questions/{questionId}: Questions within a domain.
- * - /survey_deployments/{deploymentId}: Deployments of survey templates to companies.
- * - /survey_deployments/{deploymentId}/respondents/{respondentId}: Anonymous survey respondents.
- * - /survey_deployments/{deploymentId}/respondents/{respondentId}/answers/{answerId}: Answers to survey questions.
+ * This ruleset is simplified for a controlled environment. It allows public, anonymous
+ * access for survey submissions while maintaining basic signed-in protection for the
+ * administrative sections.
  *
  * Key Security Decisions:
- * - Access to company, unit, and sector data is restricted to ClientAdmins associated with the company.
- * - Survey templates, domains, and questions are managed exclusively by SuperAdmins.
- * - Anonymous survey respondents are granted access to their own data using unique tokens.
- * - No user listing is allowed.
- * - The default security posture for ambiguous relationships is strict owner-only access.
- *
- * Denormalization for Authorization:
- * The `companyId` is denormalized into the `SurveyDeployment` collection to avoid
- * requiring complex `get()` calls to the `companies` collection during authorization.
- * Likewise, `deploymentId` is denormalized into `SurveyRespondent`, and
- * `respondentId` into `Answer`.
+ * - Survey responses (respondents and answers) can be CREATED by ANYONE with the link (public access).
+ *   This removes the need for respondents to be signed in.
+ * - Reading, updating, or deleting survey responses is disallowed to protect data integrity.
+ * - All administrative data (companies, deployments, templates) requires a user to be
+ *   signed-in (anonymously or otherwise) to read or write. This is a basic safeguard
+ *   for the admin panel.
+ * - The default security posture is to deny all access unless explicitly allowed.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -104,19 +86,21 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows anonymous survey respondents to manage their own data.
-     * This is a simplified rule for initial development.
+     * @description Allows ANYONE to create a survey response. This makes the survey link public.
+     * Reading, updating, and deleting are disallowed to protect submitted data.
      */
     match /survey_deployments/{deploymentId}/respondents/{respondentId} {
-      allow read, write: if isSignedIn();
+      allow create: if true;
+      allow read, update, delete: if false;
     }
 
     /**
-     * @description Allows anonymous survey respondents to manage their answers.
-     * This is a simplified rule for initial development.
+     * @description Allows ANYONE to create answers as part of their public submission.
+     * Reading, updating, and deleting are disallowed.
      */
     match /survey_deployments/{deploymentId}/respondents/{respondentId}/answers/{answerId} {
-      allow read, write: if isSignedIn();
+      allow create: if true;
+      allow read, update, delete: if false;
     }
   }
 
