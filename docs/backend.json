@@ -1,0 +1,505 @@
+{
+  "entities": {
+    "Company": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Company",
+      "type": "object",
+      "description": "Represents a client company using the stress survey system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the company.",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the company."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Unit": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Unit",
+      "type": "object",
+      "description": "Represents a unit within a company.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the unit.",
+          "format": "uuid"
+        },
+        "companyId": {
+          "type": "string",
+          "description": "Reference to Company. (Relationship: Company 1:N Unit)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the unit."
+        }
+      },
+      "required": [
+        "id",
+        "companyId",
+        "name"
+      ]
+    },
+    "Sector": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Sector",
+      "type": "object",
+      "description": "Represents a sector within a unit.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the sector.",
+          "format": "uuid"
+        },
+        "unitId": {
+          "type": "string",
+          "description": "Reference to Unit. (Relationship: Unit 1:N Sector)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the sector."
+        }
+      },
+      "required": [
+        "id",
+        "unitId",
+        "name"
+      ]
+    },
+    "SurveyTemplate": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SurveyTemplate",
+      "type": "object",
+      "description": "Represents a template for a stress survey.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the survey template.",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the survey template (e.g., 'Indicadores de Estresse HSE 2025')."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Domain": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Domain",
+      "type": "object",
+      "description": "Represents a domain within a survey template (e.g., 'Demandas', 'Controle').",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the domain.",
+          "format": "uuid"
+        },
+        "templateId": {
+          "type": "string",
+          "description": "Reference to SurveyTemplate. (Relationship: SurveyTemplate 1:N Domain)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the domain."
+        },
+        "benchmarkPrivateSector": {
+          "type": "number",
+          "description": "Benchmark score for the private sector."
+        },
+        "percentile25": {
+          "type": "number",
+          "description": "25th percentile score."
+        },
+        "percentile75": {
+          "type": "number",
+          "description": "75th percentile score."
+        },
+        "textResultLow": {
+          "type": "string",
+          "description": "Text displayed when the score is below the 25th percentile."
+        },
+        "textResultMedium": {
+          "type": "string",
+          "description": "Text displayed when the score is between the 25th and 75th percentiles."
+        },
+        "textResultHigh": {
+          "type": "string",
+          "description": "Text displayed when the score is above the 75th percentile."
+        },
+        "descriptionText": {
+          "type": "string",
+          "description": "A brief description of what this domain measures."
+        }
+      },
+      "required": [
+        "id",
+        "templateId",
+        "name"
+      ]
+    },
+    "Question": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Question",
+      "type": "object",
+      "description": "Represents a question within a domain.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the question.",
+          "format": "uuid"
+        },
+        "domainId": {
+          "type": "string",
+          "description": "Reference to Domain. (Relationship: Domain 1:N Question)"
+        },
+        "questionText": {
+          "type": "string",
+          "description": "The text of the question."
+        },
+        "questionCode": {
+          "type": "string",
+          "description": "The code of the question (e.g., 'Q-01')."
+        },
+        "isInvertedScore": {
+          "type": "boolean",
+          "description": "Indicates whether the question's scoring is inverted (positive or negative)."
+        }
+      },
+      "required": [
+        "id",
+        "domainId",
+        "questionText",
+        "questionCode"
+      ]
+    },
+    "SurveyDeployment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SurveyDeployment",
+      "type": "object",
+      "description": "Represents a deployment of a survey template to a company.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the survey deployment.",
+          "format": "uuid"
+        },
+        "templateId": {
+          "type": "string",
+          "description": "Reference to SurveyTemplate. (Relationship: SurveyTemplate 1:N SurveyDeployment)"
+        },
+        "companyId": {
+          "type": "string",
+          "description": "Reference to Company. (Relationship: Company 1:N SurveyDeployment)"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The start date of the survey deployment.",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The end date of the survey deployment.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the survey deployment (e.g., 'draft', 'active', 'closed')."
+        },
+        "totalInvited": {
+          "type": "number",
+          "description": "The total number of employees invited to participate in the survey. Optional for calculating adherence."
+        }
+      },
+      "required": [
+        "id",
+        "templateId",
+        "companyId",
+        "startDate",
+        "endDate",
+        "status"
+      ]
+    },
+    "SurveyRespondent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SurveyRespondent",
+      "type": "object",
+      "description": "Represents an anonymous respondent to a survey deployment.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the survey respondent.",
+          "format": "uuid"
+        },
+        "deploymentId": {
+          "type": "string",
+          "description": "Reference to SurveyDeployment. (Relationship: SurveyDeployment 1:N SurveyRespondent)"
+        },
+        "token": {
+          "type": "string",
+          "description": "A unique token for the anonymous access link.",
+          "format": "uuid"
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the survey response (e.g., 'pending', 'started', 'completed')."
+        },
+        "completedAt": {
+          "type": "string",
+          "description": "The timestamp when the survey was completed.",
+          "format": "date-time"
+        },
+        "demographics": {
+          "type": "string",
+          "description": "JSON object containing demographic data (unit, sector, age, etc.).",
+          "format": "json"
+        }
+      },
+      "required": [
+        "id",
+        "deploymentId",
+        "token"
+      ]
+    },
+    "Answer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Answer",
+      "type": "object",
+      "description": "Represents an answer to a question in a survey.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the answer.",
+          "format": "uuid"
+        },
+        "respondentId": {
+          "type": "string",
+          "description": "Reference to SurveyRespondent. (Relationship: SurveyRespondent 1:N Answer)"
+        },
+        "questionId": {
+          "type": "string",
+          "description": "Reference to Question. (Relationship: Question 1:N Answer)"
+        },
+        "rawResponse": {
+          "type": "string",
+          "description": "The raw response to the question (e.g., 'Sempre')."
+        },
+        "calculatedScore": {
+          "type": "number",
+          "description": "The calculated score for the answer (1-5)."
+        },
+        "sentiment": {
+          "type": "string",
+          "description": "The sentiment of the answer ('Desfavorável', 'Neutro', 'Favorável')."
+        }
+      },
+      "required": [
+        "id",
+        "respondentId",
+        "questionId",
+        "calculatedScore"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "companies/{companyId}",
+        "definition": {
+          "entityName": "Company",
+          "schema": {
+            "$ref": "#/backend/entities/Company"
+          },
+          "description": "Stores company information. Only SuperAdmins can create or update company documents. ClientAdmins can read their own company document.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "The unique identifier of the company."
+            }
+          ]
+        }
+      },
+      {
+        "path": "companies/{companyId}/units/{unitId}",
+        "definition": {
+          "entityName": "Unit",
+          "schema": {
+            "$ref": "#/backend/entities/Unit"
+          },
+          "description": "Stores unit information within a company. ClientAdmins can manage units within their company.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "The unique identifier of the company."
+            },
+            {
+              "name": "unitId",
+              "description": "The unique identifier of the unit."
+            }
+          ]
+        }
+      },
+      {
+        "path": "companies/{companyId}/units/{unitId}/sectors/{sectorId}",
+        "definition": {
+          "entityName": "Sector",
+          "schema": {
+            "$ref": "#/backend/entities/Sector"
+          },
+          "description": "Stores sector information within a unit. ClientAdmins can manage sectors within their company.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "The unique identifier of the company."
+            },
+            {
+              "name": "unitId",
+              "description": "The unique identifier of the unit."
+            },
+            {
+              "name": "sectorId",
+              "description": "The unique identifier of the sector."
+            }
+          ]
+        }
+      },
+      {
+        "path": "survey_templates/{templateId}",
+        "definition": {
+          "entityName": "SurveyTemplate",
+          "schema": {
+            "$ref": "#/backend/entities/SurveyTemplate"
+          },
+          "description": "Stores survey templates. Only SuperAdmins can manage survey templates.",
+          "params": [
+            {
+              "name": "templateId",
+              "description": "The unique identifier of the survey template."
+            }
+          ]
+        }
+      },
+      {
+        "path": "survey_templates/{templateId}/domains/{domainId}",
+        "definition": {
+          "entityName": "Domain",
+          "schema": {
+            "$ref": "#/backend/entities/Domain"
+          },
+          "description": "Stores domains within a survey template. Only SuperAdmins can manage domains.",
+          "params": [
+            {
+              "name": "templateId",
+              "description": "The unique identifier of the survey template."
+            },
+            {
+              "name": "domainId",
+              "description": "The unique identifier of the domain."
+            }
+          ]
+        }
+      },
+      {
+        "path": "survey_templates/{templateId}/domains/{domainId}/questions/{questionId}",
+        "definition": {
+          "entityName": "Question",
+          "schema": {
+            "$ref": "#/backend/entities/Question"
+          },
+          "description": "Stores questions within a domain. Only SuperAdmins can manage questions.",
+          "params": [
+            {
+              "name": "templateId",
+              "description": "The unique identifier of the survey template."
+            },
+            {
+              "name": "domainId",
+              "description": "The unique identifier of the domain."
+            },
+            {
+              "name": "questionId",
+              "description": "The unique identifier of the question."
+            }
+          ]
+        }
+      },
+      {
+        "path": "survey_deployments/{deploymentId}",
+        "definition": {
+          "entityName": "SurveyDeployment",
+          "schema": {
+            "$ref": "#/backend/entities/SurveyDeployment"
+          },
+          "description": "Stores survey deployments for companies. Includes denormalized 'companyId' for authorization independence. ClientAdmins can manage deployments for their company.",
+          "params": [
+            {
+              "name": "deploymentId",
+              "description": "The unique identifier of the survey deployment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "survey_deployments/{deploymentId}/respondents/{respondentId}",
+        "definition": {
+          "entityName": "SurveyRespondent",
+          "schema": {
+            "$ref": "#/backend/entities/SurveyRespondent"
+          },
+          "description": "Stores anonymous survey respondents.  Includes denormalized 'deploymentId' for authorization independence. The token field guarantees security of the anonymous access link.",
+          "params": [
+            {
+              "name": "deploymentId",
+              "description": "The unique identifier of the survey deployment."
+            },
+            {
+              "name": "respondentId",
+              "description": "The unique identifier of the survey respondent."
+            }
+          ]
+        }
+      },
+      {
+        "path": "survey_deployments/{deploymentId}/respondents/{respondentId}/answers/{answerId}",
+        "definition": {
+          "entityName": "Answer",
+          "schema": {
+            "$ref": "#/backend/entities/Answer"
+          },
+          "description": "Stores answers to survey questions. Includes denormalized 'respondentId' and implicitly 'deploymentId' for authorization independence.",
+          "params": [
+            {
+              "name": "deploymentId",
+              "description": "The unique identifier of the survey deployment."
+            },
+            {
+              "name": "respondentId",
+              "description": "The unique identifier of the survey respondent."
+            },
+            {
+              "name": "answerId",
+              "description": "The unique identifier of the answer."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure prioritizes authorization independence and efficient querying, crucial for generating the stress analysis reports and dashboards. \n\n**Authorization Independence:** Achieved through denormalization.  For example, `SurveyDeployment` documents include the `companyId`, eliminating the need for security rules to traverse up to the `Companies` collection.  Similarly, if access to survey results were dependent on the unit or sector, these would be denormalized onto the `SurveyRespondent` document.\n\n**QAPs Support:**\n\n*   **Secure `list` operations:** Each collection is structurally segregated based on access needs. For instance, survey templates are managed by SuperAdmins and reside in the `survey_templates` collection, separate from company-specific deployments.\n*   **Anonymous access links:** The `SurveyRespondent` and `Answer` collections use anonymous authentication. Security rules can validate that only users with a valid token can create or update their own documents, without relying on user IDs or custom claims.\n*   **DBAC:** Roles are checked by existence rather than content. This prevents the need to fetch documents to check roles.\n*   **Predictive Insights** The data structure allows to calculate the average scores by domain. The denormalized data into the documents allows to generate predictive insights at company and sector levels. This would require aggregation queries to fetch all the answers from the same respondents on a company, sector or unit level."
+  }
+}
