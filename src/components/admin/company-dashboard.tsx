@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { PlusCircle, FileText, MoreVertical, Archive, Trash2 } from 'lucide-react';
@@ -57,13 +57,19 @@ function DeploymentRow({ deployment, onActionComplete }: DeploymentRowProps) {
         if (!firestore) return;
         
         const respondentsCol = collection(firestore, 'survey_deployments', deployment.id, 'respondents');
-        const unsubscribe = getDocs(respondentsCol).then(snapshot => {
+        
+        // Use onSnapshot for real-time updates
+        const unsubscribe = onSnapshot(respondentsCol, snapshot => {
             setRespondentCount(snapshot.size);
             setIsLoading(false);
-        }).catch(err => {
-            console.error("Failed to fetch respondent count:", err);
+        }, err => {
+            console.error("Failed to listen to respondent count:", err);
+            // Optionally set an error state here
             setIsLoading(false);
         });
+        
+        // Cleanup listener on unmount
+        return () => unsubscribe();
         
     }, [firestore, deployment.id]);
     
