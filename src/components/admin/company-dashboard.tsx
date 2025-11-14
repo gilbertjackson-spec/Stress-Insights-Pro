@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { PlusCircle, FileText } from 'lucide-react';
@@ -10,7 +10,7 @@ import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { AddSurveyForm } from './add-survey-form';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ShareSurveyDialog } from './share-survey-dialog';
 import type { SurveyStatus } from '@/lib/types';
 import StatusMenu from './status-menu';
@@ -26,10 +26,51 @@ interface SurveyDeployment {
     startDate: string;
     endDate: string;
     status: SurveyStatus;
+    totalInvited: number;
+    respondentCount?: number;
 }
 
 interface CompanyDashboardProps {
     company: Company;
+}
+
+function DeploymentRow({ deployment }: { deployment: SurveyDeployment }) {
+    const firestore = useFirestore();
+    const [respondentCount, setRespondentCount] = useState<number | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (!firestore) return;
+        
+        const respondentsCol = collection(firestore, 'survey_deployments', deployment.id, 'respondents');
+        getDocs(respondentsCol).then(snapshot => {
+            setRespondentCount(snapshot.size);
+            setIsLoading(false);
+        }).catch(err => {
+            console.error("Failed to fetch respondent count:", err);
+            setIsLoading(false);
+        });
+        
+    }, [firestore, deployment.id]);
+
+    return (
+         <TableRow key={deployment.id}>
+            <TableCell className="font-medium">Indicadores de Estresse HSE 2025</TableCell>
+            <TableCell>{new Date(deployment.startDate).toLocaleDateString()} - {new Date(deployment.endDate).toLocaleDateString()}</TableCell>
+            <TableCell>
+                {isLoading ? <Skeleton className="h-5 w-16" /> : `${respondentCount ?? 0} / ${deployment.totalInvited}`}
+            </TableCell>
+            <TableCell>
+                <StatusMenu deploymentId={deployment.id} currentStatus={deployment.status} />
+            </TableCell>
+            <TableCell className="text-right space-x-2">
+                <ShareSurveyDialog deploymentId={deployment.id} />
+                <Button asChild variant="outline" size="sm">
+                    <Link href={`/admin/reports/${deployment.id}`}>Ver Relatório</Link>
+                </Button>
+            </TableCell>
+        </TableRow>
+    );
 }
 
 export default function CompanyDashboard({ company }: CompanyDashboardProps) {
@@ -44,7 +85,7 @@ export default function CompanyDashboard({ company }: CompanyDashboardProps) {
         );
     }, [firestore, company.id]);
 
-    const { data: deployments, isLoading } = useCollection(deploymentsQuery);
+    const { data: deployments, isLoading } = useCollection<Omit<SurveyDeployment, 'respondentCount'>>(deploymentsQuery);
 
     return (
         <div className="space-y-6">
@@ -88,6 +129,7 @@ export default function CompanyDashboard({ company }: CompanyDashboardProps) {
                                 <TableRow>
                                     <TableHead>Template da Pesquisa</TableHead>
                                     <TableHead>Período</TableHead>
+                                    <TableHead>Respostas</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead className="text-right">Ações</TableHead>
                                 </TableRow>
@@ -98,29 +140,18 @@ export default function CompanyDashboard({ company }: CompanyDashboardProps) {
                                         <TableRow key={index}>
                                             <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                                             <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                                             <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                                             <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
                                         </TableRow>
                                     ))
                                 ) : deployments && deployments.length > 0 ? (
                                     deployments.map((dep: SurveyDeployment) => (
-                                        <TableRow key={dep.id}>
-                                            <TableCell className="font-medium">Indicadores de Estresse HSE 2025</TableCell>
-                                            <TableCell>{new Date(dep.startDate).toLocaleDateString()} - {new Date(dep.endDate).toLocaleDateString()}</TableCell>
-                                            <TableCell>
-                                                <StatusMenu deploymentId={dep.id} currentStatus={dep.status} />
-                                            </TableCell>
-                                            <TableCell className="text-right space-x-2">
-                                                <ShareSurveyDialog deploymentId={dep.id} />
-                                                <Button asChild variant="outline" size="sm">
-                                                    <Link href={`/admin/reports/${dep.id}`}>Ver Relatório</Link>
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
+                                       <DeploymentRow key={dep.id} deployment={dep} />
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
+                                        <TableCell colSpan={5} className="h-24 text-center">
                                             Nenhuma pesquisa encontrada para esta empresa.
                                         </TableCell>
                                     </TableRow>
