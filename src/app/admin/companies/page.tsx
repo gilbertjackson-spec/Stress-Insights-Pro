@@ -20,10 +20,7 @@ export default function CompaniesPage() {
   const isLoading = isUserLoading || areCompaniesLoading;
 
   return (
-    <div className="p-4 sm:p-8 pt-6">
-      <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight mb-6">
-        Gerenciar Empresas
-      </h1>
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <CompaniesTable companies={companies || []} isLoading={isLoading} />
     </div>
   );
