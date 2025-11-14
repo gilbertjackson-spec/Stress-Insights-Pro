@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { addAnswerBatch } from '@/lib/answer-service';
 import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { collection, doc, getDocs } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 
 interface SurveyQuestionnaireProps {
@@ -53,7 +53,7 @@ export default function SurveyQuestionnaire({ deploymentId, templateId, demograp
         const questionsData: Record<string, Question[]> = {};
         for (const domain of domains) {
             const questionsRef = collection(firestore, 'survey_templates', templateId, 'domains', domain.id, 'questions');
-            const questionsSnap = await useFirestore.getDocs(questionsRef);
+            const questionsSnap = await getDocs(questionsRef);
             questionsData[domain.id] = questionsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Question));
         }
         setQuestionsByDomain(questionsData);
