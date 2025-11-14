@@ -4,7 +4,6 @@ import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "./sidebar";
 import AppHeader from "./header";
 import React, { useState, useEffect } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [isClient, setIsClient] = useState(false);
