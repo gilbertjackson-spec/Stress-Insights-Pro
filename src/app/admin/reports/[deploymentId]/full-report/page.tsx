@@ -65,51 +65,42 @@ export default function FullReportPage() {
     setIsGeneratingPdf(true);
 
     try {
-        // Use html2canvas to render the element to a canvas
-        const canvas = await html2canvas(reportElement, {
-            scale: 2, // Increase scale for better quality
-            useCORS: true,
-            onclone: (document) => {
-                // This allows you to modify the cloned document before rendering
-                // For example, ensuring all styles are applied
-            }
-        });
-
-        // Get image data from canvas
-        const imgData = canvas.toDataURL('image/png');
-
-        // Create a new jsPDF instance
         const pdf = new jsPDF({
             orientation: 'p',
             unit: 'mm',
             format: 'a4',
         });
 
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const ratio = canvasWidth / canvasHeight;
+        // The html2canvas library has a bug with its typings, so we have to use 'any' here.
+        // It returns a promise that resolves with the canvas.
+        const canvas = await (html2canvas as any)(reportElement, {
+            scale: 2, // Higher scale for better quality
+            useCORS: true,
+            logging: false, // Suppress logging in console
+            windowWidth: pdf.internal.pageSize.getWidth() * 4, // Simulate wider screen
+        });
         
-        let imgHeight = pdfWidth / ratio;
-        let heightLeft = imgHeight;
-
+        const imgData = canvas.toDataURL('image/png');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = imgWidth / imgHeight;
+        let height = pdfWidth / ratio;
         let position = 0;
 
-        // Add the first page
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pdfHeight;
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, height);
+        let heightLeft = height - pageHeight;
 
-        // Add new pages if content overflows
         while (heightLeft > 0) {
-            position = heightLeft - imgHeight;
+            position = -pageHeight * (pdf.internal.pages.length - 1);
             pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-            heightLeft -= pdfHeight;
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, height);
+            heightLeft -= pageHeight;
         }
-        
-        // Save the PDF
+
         pdf.save('Relatorio_Stress_Insights.pdf');
+
     } catch (error) {
         console.error("Error generating PDF:", error);
         setError("Não foi possível gerar o PDF. Tente novamente.");
@@ -169,7 +160,7 @@ export default function FullReportPage() {
                 {isGeneratingPdf ? 'Gerando PDF...' : 'Salvar como PDF'}
             </Button>
         </div>
-      <div id="full-report-content">
+      <div id="full-report-content" className="bg-card">
         <FullReport data={reportData} company={company} deployment={deployment} />
       </div>
     </div>
