@@ -8,22 +8,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Bell, Search } from 'lucide-react';
-import { SidebarTrigger } from '../ui/sidebar';
+import { Bell, Search, BrainCircuit } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import Link from 'next/link';
 
 export default function AppHeader() {
-  const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur-sm sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-      <SidebarTrigger className="sm:hidden" />
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur-sm sm:px-6">
+      <div className="flex items-center gap-2">
+        <Link href="/admin/companies" className="flex items-center gap-2 text-foreground">
+          <BrainCircuit className="h-6 w-6" />
+          <div className="flex flex-col">
+            <h2 className="text-md font-headline font-semibold">
+              Stress Insights
+            </h2>
+          </div>
+        </Link>
+      </div>
+
       <div className="relative ml-auto flex-1 md:grow-0">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <input
@@ -37,11 +43,19 @@ export default function AppHeader() {
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative h-8 w-8 rounded-full"
+          >
             <Avatar className="h-9 w-9">
-                {userAvatar && (
-                    <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" data-ai-hint={userAvatar.imageHint} />
-                )}
+              {userAvatar && (
+                <AvatarImage
+                  src={userAvatar.imageUrl}
+                  alt="User Avatar"
+                  data-ai-hint={userAvatar.imageHint}
+                />
+              )}
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
           </Button>
