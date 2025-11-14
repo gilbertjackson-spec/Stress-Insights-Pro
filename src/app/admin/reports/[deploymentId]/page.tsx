@@ -8,6 +8,8 @@ import { ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useParams } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default function ReportPage() {
   const params = useParams();
   const deploymentId = params.deploymentId as string;

@@ -13,6 +13,8 @@ import { Terminal, Loader2, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function FullReportPage() {
   const params = useParams();
   const deploymentId = params.deploymentId as string;

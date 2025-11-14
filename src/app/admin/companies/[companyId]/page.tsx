@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from 'next/link';
 import { ChevronRight, Building, FileText, BarChart3, UserCog } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function CompanyPage() {
   const params = useParams();
   const companyId = params.companyId as string;

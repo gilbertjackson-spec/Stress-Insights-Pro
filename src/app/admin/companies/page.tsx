@@ -4,6 +4,8 @@ import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebas
 import { collection } from 'firebase/firestore';
 import CompaniesTable from '@/components/admin/companies-table';
 
+export const dynamic = 'force-dynamic';
+
 export default function CompaniesPage() {
   const firestore = useFirestore();
   const { isUserLoading } = useUser();

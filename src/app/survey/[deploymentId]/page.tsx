@@ -11,6 +11,8 @@ import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, getDocs } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 type SurveyStep = 'welcome' | 'demographics' | 'questionnaire' | 'completed';
 
 interface OrgStructure {
