@@ -5,12 +5,19 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, UserCog } from 'lucide-react';
+import { PlusCircle, UserCog, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddPositionForm } from './add-position-form';
 import type { Position } from '@/lib/types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 export default function PositionsManagement({ companyId }: { companyId: string }) {
     const firestore = useFirestore();
@@ -38,7 +45,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                         <UserCog className="h-5 w-5" />
                         Gerenciar Cargos
                     </CardTitle>
-                    <CardDescription>Adicione ou edite os cargos da sua empresa.</CardDescription>
+                    <CardDescription>Adicione, edite ou exclua os cargos da sua empresa.</CardDescription>
                 </div>
                  <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                     <DialogTrigger asChild>
@@ -61,7 +68,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Nome do Cargo</TableHead>
-                                <TableHead className="text-right">Ações</TableHead>
+                                <TableHead className="text-right w-[50px]">Ações</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -74,7 +81,24 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                                     <TableRow key={position.id}>
                                         <TableCell>{position.name}</TableCell>
                                         <TableCell className="text-right">
-                                            {/* Action buttons (edit, delete) can go here */}
+                                             <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem disabled>
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        Editar
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem disabled className="text-red-600">
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        Excluir
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))

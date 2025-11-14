@@ -5,12 +5,19 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Component } from 'lucide-react';
+import { PlusCircle, Component, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Sector, Unit } from '@/lib/types';
 import { AddSectorForm } from './add-sector-form';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 export default function SectorsManagement({ companyId }: { companyId: string }) {
     const firestore = useFirestore();
@@ -27,44 +34,15 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
     const [sectors, setSectors] = useState<Sector[]>([]);
     const [sectorsLoading, setSectorsLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchSectors = async () => {
-            if (!firestore || !units) {
-                setSectorsLoading(false);
-                return;
-            };
-
-            setSectorsLoading(true);
-            try {
-                const allSectors: Sector[] = [];
-                for (const unit of units) {
-                    const sectorsCollectionRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
-                    const sectorsSnapshot = await getDocs(sectorsCollectionRef);
-                    sectorsSnapshot.forEach(doc => {
-                        allSectors.push({ ...doc.data(), id: doc.id, unitId: unit.id } as Sector);
-                    });
-                }
-                setSectors(allSectors);
-            } catch (error) {
-                console.error("Error fetching sectors:", error);
-            } finally {
-                setSectorsLoading(false);
-            }
+    const fetchSectors = async () => {
+        if (!firestore || !units) {
+            if(!unitsLoading) setSectorsLoading(false);
+            return;
         };
 
-        fetchSectors();
-    }, [firestore, companyId, units]);
-
-
-    const handleFormFinished = () => {
-        setIsAddDialogOpen(false);
-        // This is a simple way to refetch, not the most efficient but will work
-        const fetchSectors = async () => {
-            if (!firestore || !units) return;
-
-            setSectorsLoading(true);
+        setSectorsLoading(true);
+        try {
             const allSectors: Sector[] = [];
-            
             for (const unit of units) {
                 const sectorsCollectionRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
                 const sectorsSnapshot = await getDocs(sectorsCollectionRef);
@@ -72,11 +50,22 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
                     allSectors.push({ ...doc.data(), id: doc.id, unitId: unit.id } as Sector);
                 });
             }
-            
             setSectors(allSectors);
+        } catch (error) {
+            console.error("Error fetching sectors:", error);
+        } finally {
             setSectorsLoading(false);
-        };
+        }
+    };
 
+
+    useEffect(() => {
+        fetchSectors();
+    }, [firestore, companyId, units]);
+
+
+    const handleFormFinished = () => {
+        setIsAddDialogOpen(false);
         // Delay slightly to allow Firestore to process the write
         setTimeout(fetchSectors, 500);
     }
@@ -98,7 +87,7 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
                         <Component className="h-5 w-5" />
                         Gerenciar Setores
                     </CardTitle>
-                    <CardDescription>Adicione ou edite os setores de cada unidade.</CardDescription>
+                    <CardDescription>Adicione, edite ou exclua os setores de cada unidade.</CardDescription>
                 </div>
                  <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                     <DialogTrigger asChild>
@@ -122,7 +111,7 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
                             <TableRow>
                                 <TableHead>Nome do Setor</TableHead>
                                 <TableHead>Unidade</TableHead>
-                                <TableHead className="text-right">Ações</TableHead>
+                                <TableHead className="text-right w-[50px]">Ações</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -136,7 +125,24 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
                                         <TableCell>{sector.name}</TableCell>
                                         <TableCell className="text-muted-foreground">{sector.unitName}</TableCell>
                                         <TableCell className="text-right">
-                                            {/* Action buttons (edit, delete) can go here */}
+                                             <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem disabled>
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        Editar
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem disabled className="text-red-600">
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        Excluir
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))
