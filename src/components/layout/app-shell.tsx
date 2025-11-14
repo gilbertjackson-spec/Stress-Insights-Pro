@@ -3,16 +3,26 @@
 import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "./sidebar";
 import AppHeader from "./header";
+import React, { useState, useEffect } from "react";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  // Get the default sidebar state from a cookie
-  const defaultOpen =
-    typeof document !== "undefined"
-      ? document.cookie.includes("sidebar_state=true")
-      : true;
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    const defaultOpen = document.cookie.includes("sidebar_state=true");
+    setIsSidebarOpen(defaultOpen);
+  }, []);
+
+
+  if (!isClient) {
+    // Render a placeholder or null on the server to avoid hydration mismatch
+    return null;
+  }
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    <SidebarProvider defaultOpen={isSidebarOpen}>
       <Sidebar>
         <AppSidebar />
       </Sidebar>
