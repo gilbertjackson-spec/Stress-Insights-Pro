@@ -1,9 +1,6 @@
-'use server'
-
 import { getMockSurveyTemplate } from './mock-data';
-import type { Answer, DashboardData, Demographics, Domain, DomainAnalysis, QuestionAnalysis, Respondent, SurveyDeployment } from './types';
-import { initializeFirebase } from '@/firebase';
-import { getDocs, collection, doc, getDoc } from 'firebase/firestore';
+import type { Answer, DashboardData, Demographics, Domain, DomainAnalysis, QuestionAnalysis, Respondent, SurveyDeployment, SurveyStatus } from './types';
+import { getDocs, collection, doc, getDoc, Firestore } from 'firebase/firestore';
 
 export interface Filters {
   unit?: string | 'all';
@@ -14,8 +11,7 @@ export interface Filters {
 }
 
 // Helper to fetch all respondents and their answers for a given deployment
-async function getRespondentsWithAnswers(deploymentId: string): Promise<Respondent[]> {
-    const { firestore } = initializeFirebase();
+async function getRespondentsWithAnswers(firestore: Firestore, deploymentId: string): Promise<Respondent[]> {
     const respondentsRef = collection(firestore, 'survey_deployments', deploymentId, 'respondents');
     const respondentsSnap = await getDocs(respondentsRef);
 
@@ -43,6 +39,8 @@ function filterRespondents(respondents: Respondent[], filters: Filters): Respond
   return respondents.filter(respondent => {
     return Object.entries(filters).every(([key, value]) => {
       if (!value || value === 'all') return true;
+      // Handle cases where respondent.demographics might be undefined
+      if (!respondent.demographics) return false;
       return respondent.demographics[key as keyof Demographics] === value;
     });
   });
@@ -127,19 +125,18 @@ function analyzeDomain(domain: Domain, respondents: Respondent[]): DomainAnalysi
   };
 }
 
-export async function getDashboardData(deploymentId: string, filters: Filters): Promise<DashboardData> {
-  const { firestore } = initializeFirebase();
+export async function getDashboardData(firestore: Firestore, deploymentId: string, filters: Filters): Promise<DashboardData> {
 
   // 1. Fetch deployment details
   const deploymentRef = doc(firestore, 'survey_deployments', deploymentId);
   const deploymentSnap = await getDoc(deploymentRef);
   if (!deploymentSnap.exists()) {
-      throw new Error("Survey deployment not found.");
+      throw new Error("Pesquisa não encontrada.");
   }
-  const deployment = deploymentSnap.data() as SurveyDeployment;
+  const deployment = deploymentSnap.data() as Omit<SurveyDeployment, 'id'>;
 
   // 2. Fetch all respondents and their answers for this deployment
-  const allRespondents = await getRespondentsWithAnswers(deploymentId);
+  const allRespondents = await getRespondentsWithAnswers(firestore, deploymentId);
   
   // 3. Get the survey template (still from mock, can be moved to Firestore later)
   const template = getMockSurveyTemplate();
@@ -156,16 +153,17 @@ export async function getDashboardData(deploymentId: string, filters: Filters): 
   
   // 7. Get available demographic options from all respondents (before filtering)
   const demographic_options = {
-    units: ['all', ...new Set(allRespondents.map(r => r.demographics.unit))],
-    sectors: ['all', ...new Set(allRespondents.map(r => r.demographics.sector))],
-    positions: ['all', ...new Set(allRespondents.map(r => r.demographics.position))],
-    age_ranges: ['all', ...new Set(allRespondents.map(r => r.demographics.age_range))],
-    current_role_times: ['all', ...new Set(allRespondents.map(r => r.demographics.current_role_time))],
+    units: ['all', ...Array.from(new Set(allRespondents.map(r => r.demographics?.unit).filter(Boolean)))],
+    sectors: ['all', ...Array.from(new Set(allRespondents.map(r => r.demographics?.sector).filter(Boolean)))],
+    positions: ['all', ...Array.from(new Set(allRespondents.map(r => r.demographics?.position).filter(Boolean)))],
+    age_ranges: ['all', ...Array.from(new Set(allRespondents.map(r => r.demographics?.age_range).filter(Boolean)))],
+    current_role_times: ['all', ...Array.from(new Set(allRespondents.map(r => r.demographics?.current_role_time).filter(Boolean)))],
   };
 
   return {
     total_respondents,
     completion_rate,
+    surveyStatus: deployment.status as SurveyStatus,
     domain_analysis,
     demographic_options
   };

@@ -11,6 +11,7 @@ import ExecutiveSummary from './executive-summary';
 import DomainAccordion from './domain-accordion';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Terminal } from 'lucide-react';
+import { useFirestore } from '@/firebase';
 
 const initialFilters: Filters = {
     unit: 'all',
@@ -25,19 +26,20 @@ interface MainDashboardProps {
 }
 
 export default function MainDashboard({ deploymentId }: MainDashboardProps) {
+    const firestore = useFirestore();
     const [data, setData] = useState<DashboardData | null>(null);
     const [filters, setFilters] = useState<Filters>(initialFilters);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!deploymentId) return;
+        if (!deploymentId || !firestore) return;
 
         const fetchData = async () => {
             setIsLoading(true);
             setError(null);
             try {
-                const result = await getDashboardData(deploymentId, filters);
+                const result = await getDashboardData(firestore, deploymentId, filters);
                 setData(result);
             } catch(e: any) {
                 console.error("Failed to load dashboard data:", e);
@@ -47,7 +49,7 @@ export default function MainDashboard({ deploymentId }: MainDashboardProps) {
             }
         };
         fetchData();
-    }, [deploymentId, filters]);
+    }, [deploymentId, filters, firestore]);
 
     if (isLoading && !data) {
         return <DashboardSkeleton />;
@@ -63,7 +65,7 @@ export default function MainDashboard({ deploymentId }: MainDashboardProps) {
         )
     }
 
-    if (!data || data.total_respondents === 0) {
+    if (!data || data.total_respondents === 0 && filters.unit === 'all' && filters.sector === 'all' && filters.position === 'all') {
         return (
             <div className='space-y-6'>
                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -78,6 +80,10 @@ export default function MainDashboard({ deploymentId }: MainDashboardProps) {
                 </Alert>
             </div>
         );
+    }
+    
+    if (!data) {
+        return <DashboardSkeleton />;
     }
 
     return (
@@ -94,13 +100,25 @@ export default function MainDashboard({ deploymentId }: MainDashboardProps) {
                 disabled={isLoading}
             />
 
-            <OverviewCards data={data} isLoading={isLoading} />
-            
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-                <ExecutiveSummary data={data} isLoading={isLoading} />
-            </div>
+            {data.total_respondents > 0 ? (
+                <>
+                    <OverviewCards data={data} isLoading={isLoading} />
+                    
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+                        <ExecutiveSummary data={data} isLoading={isLoading} />
+                    </div>
 
-            <DomainAccordion data={data} isLoading={isLoading} />
+                    <DomainAccordion data={data} isLoading={isLoading} />
+                </>
+            ) : (
+                <Alert>
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>Nenhuma resposta encontrada</AlertTitle>
+                    <AlertDescription>
+                        Não há dados de resposta que correspondam aos filtros selecionados.
+                    </AlertDescription>
+                </Alert>
+            )}
         </div>
     );
 }
@@ -109,11 +127,17 @@ function DashboardSkeleton() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-9 w-64" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
             <Skeleton className="md:col-span-4 lg:col-span-4 h-96" />

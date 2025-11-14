@@ -130,6 +130,7 @@ export interface DomainAnalysis {
 export interface DashboardData {
   total_respondents: number;
   completion_rate: number;
+  surveyStatus: SurveyStatus;
   domain_analysis: DomainAnalysis[];
   demographic_options: {
     units: string[];
