@@ -1,5 +1,5 @@
 import type { SurveyTemplate } from './types';
-import { DOMAIN_QUESTIONS_MAP, LIKERT_SCALE, INVERTED_DOMAINS } from './constants';
+import { DOMAIN_QUESTIONS_MAP, INVERTED_DOMAINS } from './constants';
 
 const questionsData: { code: string; text: string }[] = [
   { code: 'Q-01', text: 'Tenho clareza sobre os objetivos e as responsabilidades do meu cargo.' },
@@ -40,32 +40,37 @@ const questionsData: { code: string; text: string }[] = [
 ];
 
 let questionIdCounter = 1;
+let domainIdCounter = 1;
+let templateIdCounter = 1;
 
 const surveyTemplate: SurveyTemplate = {
-  id: 1,
+  id: String(templateIdCounter++),
   name: 'Ferramenta de Avaliação dos Indicadores de Risco Psicossociais AptaFlow',
-  domains: Object.entries(DOMAIN_QUESTIONS_MAP).map(([domainName, questionCodes], index) => ({
-    id: index + 1,
-    templateId: 1,
-    name: domainName,
-    benchmarkPrivateSector: parseFloat((3.1 + Math.random() * 0.5).toFixed(2)),
-    percentile25: parseFloat((2.8 + Math.random() * 0.4).toFixed(2)),
-    percentile75: parseFloat((3.6 + Math.random() * 0.4).toFixed(2)),
-    textResultLow: `Sua pontuação para ${domainName} está abaixo do 25º percentil, sugerindo uma área de risco significativa. É crucial investigar as causas e implementar ações corretivas.`,
-    textResultMedium: `Sua pontuação para ${domainName} está na média do setor, entre o 25º e o 75º percentil. Existem oportunidades de melhoria para elevar o bem-estar da equipe.`,
-    textResultHigh: `Sua pontuação para ${domainName} está acima do 75º percentil, indicando um ponto forte na organização. Continue nutrindo este ambiente positivo.`,
-    description: `Este domínio mede ${domainName.toLowerCase()}, que se refere à carga de trabalho, padrões de trabalho e ambiente, e como eles afetam o bem-estar dos colaboradores.`,
-    questions: questionCodes.map(code => {
-      const question = questionsData.find(q => q.code === code);
-      return {
-        id: questionIdCounter++,
-        domainId: index + 1,
-        questionCode: code,
-        questionText: question ? question.text : `Texto para a pergunta ${code}`,
-        isInvertedScore: INVERTED_DOMAINS.includes(domainName),
-      };
-    }),
-  })),
+  domains: Object.entries(DOMAIN_QUESTIONS_MAP).map(([domainName, questionCodes]) => {
+    const currentDomainId = String(domainIdCounter++);
+    return {
+      id: currentDomainId,
+      templateId: "1",
+      name: domainName,
+      benchmarkPrivateSector: parseFloat((3.1 + Math.random() * 0.5).toFixed(2)),
+      percentile25: parseFloat((2.8 + Math.random() * 0.4).toFixed(2)),
+      percentile75: parseFloat((3.6 + Math.random() * 0.4).toFixed(2)),
+      textResultLow: `Sua pontuação para ${domainName} está abaixo do 25º percentil, sugerindo uma área de risco significativa. É crucial investigar as causas e implementar ações corretivas.`,
+      textResultMedium: `Sua pontuação para ${domainName} está na média do setor, entre o 25º e o 75º percentil. Existem oportunidades de melhoria para elevar o bem-estar da equipe.`,
+      textResultHigh: `Sua pontuação para ${domainName} está acima do 75º percentil, indicando um ponto forte na organização. Continue nutrindo este ambiente positivo.`,
+      descriptionText: `Este domínio mede ${domainName.toLowerCase()}, que se refere à carga de trabalho, padrões de trabalho e ambiente, e como eles afetam o bem-estar dos colaboradores.`,
+      questions: questionCodes.map(code => {
+        const question = questionsData.find(q => q.code === code);
+        return {
+          id: String(questionIdCounter++),
+          domainId: currentDomainId,
+          questionCode: code,
+          questionText: question ? question.text : `Texto para a pergunta ${code}`,
+          isInvertedScore: INVERTED_DOMAINS.includes(domainName),
+        };
+      }),
+    };
+  }),
 };
 
 

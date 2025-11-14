@@ -15,17 +15,17 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { Loader2, Calendar as CalendarIcon } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Calendar } from '../ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { addSurveyDeployment } from '@/lib/survey-deployment-service';
-import { getMockSurveyTemplate } from '@/lib/mock-data';
 import type { SurveyTemplate } from '@/lib/types';
+import { collection } from 'firebase/firestore';
 
 
 const formSchema = z.object({
@@ -50,19 +50,13 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
   const { toast } = useToast();
   const firestore = useFirestore();
   const [isLoading, setIsLoading] = useState(false);
-  const [templates, setTemplates] = useState<SurveyTemplate[]>([]);
-  const [areTemplatesLoading, setAreTemplatesLoading] = useState(true);
+  
+  const templatesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'survey_templates');
+  }, [firestore]);
 
-  useEffect(() => {
-    // Using mock data for now as Firestore is not populated
-    const mockTemplate = getMockSurveyTemplate();
-    const formattedTemplates = [{
-      ...mockTemplate,
-      id: String(mockTemplate.template_id),
-    }]
-    setTemplates(formattedTemplates as any);
-    setAreTemplatesLoading(false);
-  }, []);
+  const { data: templates, isLoading: areTemplatesLoading } = useCollection<SurveyTemplate>(templatesQuery);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -121,7 +115,7 @@ export function AddSurveyForm({ companyId, onFinished }: { companyId: string, on
                 </FormControl>
                 <SelectContent>
                   {templates?.map((template) => (
-                    <SelectItem key={template.template_id} value={String(template.template_id)}>
+                    <SelectItem key={template.id} value={String(template.id)}>
                       {template.name}
                     </SelectItem>
                   ))}
