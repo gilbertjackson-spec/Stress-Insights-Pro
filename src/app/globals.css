@@ -87,3 +87,22 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@layer utilities {
+    .print\:hidden {
+        @media print {
+            display: none;
+        }
+    }
+    .print\:shadow-none {
+        @media print {
+            box-shadow: none;
+        }
+    }
+    .break-after-page {
+        break-after: page;
+    }
+    .break-inside-avoid {
+        break-inside: avoid;
+    }
+}

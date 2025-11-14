@@ -10,8 +10,10 @@ import OverviewCards from './overview-cards';
 import ExecutiveSummary from './executive-summary';
 import DomainAccordion from './domain-accordion';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { Terminal } from 'lucide-react';
+import { Terminal, Printer } from 'lucide-react';
 import { useFirestore } from '@/firebase';
+import { Button } from '../ui/button';
+import Link from 'next/link';
 
 const initialFilters: Filters = {
     unit: 'all',
@@ -90,7 +92,14 @@ export default function MainDashboard({ deploymentId }: MainDashboardProps) {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                  <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Dashboard de Análise</h1>
-                 {/* Can add a date picker or other actions here */}
+                 <Link href={`/admin/reports/${deploymentId}/full-report`} passHref>
+                    <Button variant="outline" asChild>
+                        <a>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Gerar Relatório Completo
+                        </a>
+                    </Button>
+                 </Link>
             </div>
             
             <DashboardFilters 
