@@ -99,7 +99,8 @@ service cloud.firestore {
      */
     match /survey_deployments/{deploymentId}/respondents/{respondentId}/answers/{answerId} {
       allow create: if true;
-      allow read, update, delete: if false;
+      allow read: if isSignedIn();
+      allow update, delete: if false;
     }
   }
 
