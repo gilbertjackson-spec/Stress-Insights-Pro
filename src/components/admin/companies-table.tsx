@@ -20,6 +20,7 @@ import {
 import { AddCompanyForm } from './add-company-form';
 import { Skeleton } from '../ui/skeleton';
 import { PlusCircle } from 'lucide-react';
+import Link from 'next/link';
 
 interface Company {
   id: string;
@@ -85,8 +86,10 @@ export default function CompaniesTable({
                 <TableRow key={company.id}>
                   <TableCell className="font-medium">{company.name}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm">
-                      Detalhes
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/admin/companies/${company.id}`}>
+                        Detalhes
+                      </Link>
                     </Button>
                   </TableCell>
                 </TableRow>
