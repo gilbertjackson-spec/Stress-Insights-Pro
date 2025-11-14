@@ -92,14 +92,12 @@ export default function MainDashboard({ deploymentId }: MainDashboardProps) {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                  <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">Dashboard de Análise</h1>
-                 <Link href={`/admin/reports/${deploymentId}/full-report`} passHref>
-                    <Button variant="outline" asChild>
-                        <a>
-                            <Printer className="mr-2 h-4 w-4" />
-                            Gerar Relatório Completo
-                        </a>
-                    </Button>
-                 </Link>
+                 <Button variant="outline" asChild>
+                    <Link href={`/admin/reports/${deploymentId}/full-report`}>
+                        <Printer className="mr-2 h-4 w-4" />
+                        Gerar Relatório Completo
+                    </Link>
+                 </Button>
             </div>
             
             <DashboardFilters 
