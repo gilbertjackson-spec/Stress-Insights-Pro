@@ -1,27 +1,30 @@
-"use client";
+'use client';
 
-import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "./sidebar";
-import AppHeader from "./header";
-import React, { useState, useEffect } from "react";
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarInset,
+} from '@/components/ui/sidebar';
+import { AppSidebar } from './sidebar';
+import AppHeader from './header';
+import React, { useState, useEffect } from 'react';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [isClient, setIsClient] = useState(false);
-  
+
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // On the server, we can render with a default, and the client will correct it.
-  // To prevent hydration mismatch, we use a key on the provider or wait for client.
-  const defaultOpen = isClient ? document.cookie.includes("sidebar_state=true") : true;
-
-  if (!isClient) {
-    return null; // or a loading skeleton
-  }
+  const defaultOpen = isClient
+    ? document.cookie.includes('sidebar_state=true')
+    : true;
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen} key={isClient ? 'client' : 'server'}>
+    <SidebarProvider
+      defaultOpen={defaultOpen}
+      key={isClient ? 'client' : 'server'}
+    >
       <div className="flex min-h-screen">
         <Sidebar>
           <AppSidebar />
@@ -30,7 +33,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <AppHeader />
           <main className="flex-1 bg-background">
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-                {children}
+              {children}
             </div>
           </main>
         </SidebarInset>
