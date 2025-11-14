@@ -14,26 +14,32 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 interface EditProfileDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  currentAvatarUrl: string;
   onSave: (newUrl: string) => void;
 }
 
-export function EditProfileDialog({ isOpen, onOpenChange, currentAvatarUrl, onSave }: EditProfileDialogProps) {
-  const [avatarUrl, setAvatarUrl] = useState(currentAvatarUrl);
+export function EditProfileDialog({ isOpen, onOpenChange, onSave }: EditProfileDialogProps) {
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const defaultAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+
 
   useEffect(() => {
-    setAvatarUrl(currentAvatarUrl);
-  }, [currentAvatarUrl, isOpen]);
+    if (isOpen) {
+      const savedAvatar = localStorage.getItem('user-avatar-url');
+      setAvatarUrl(savedAvatar || defaultAvatar?.imageUrl || '');
+    }
+  }, [isOpen, defaultAvatar]);
 
   const handleSave = () => {
     setIsLoading(true);
     // Simulate a network request
     setTimeout(() => {
+      localStorage.setItem('user-avatar-url', avatarUrl);
       onSave(avatarUrl);
       setIsLoading(false);
     }, 500);

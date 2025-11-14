@@ -11,18 +11,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Bell, Search, BrainCircuit } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { EditProfileDialog } from '../profile/edit-profile-dialog';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function AppHeader() {
   const defaultAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
   const [avatarUrl, setAvatarUrl] = useState(defaultAvatar?.imageUrl);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
 
+  // This effect runs only on the client, after the initial render.
   useEffect(() => {
-    // This runs only on the client, where localStorage is available.
     const savedAvatar = localStorage.getItem('user-avatar-url');
     if (savedAvatar) {
       setAvatarUrl(savedAvatar);
@@ -31,7 +31,7 @@ export default function AppHeader() {
 
   const handleProfileSave = (newUrl: string) => {
     setAvatarUrl(newUrl);
-    localStorage.setItem('user-avatar-url', newUrl);
+    // The dialog itself will save to localStorage
     setIsProfileDialogOpen(false);
   };
 
@@ -90,7 +90,6 @@ export default function AppHeader() {
       <EditProfileDialog 
         isOpen={isProfileDialogOpen}
         onOpenChange={setIsProfileDialogOpen}
-        currentAvatarUrl={avatarUrl || ''}
         onSave={handleProfileSave}
       />
     </header>
