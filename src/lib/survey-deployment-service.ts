@@ -1,7 +1,7 @@
 'use client';
 
 import { addDocumentNonBlocking } from '@/firebase';
-import { collection, Firestore } from 'firebase/firestore';
+import { collection, doc, Firestore, updateDoc, deleteDoc } from 'firebase/firestore';
 
 interface NewDeploymentData {
     companyId: string;
@@ -36,4 +36,24 @@ export const addSurveyDeployment = async (firestore: Firestore, data: NewDeploym
 
   const docRef = await docRefPromise;
   return docRef;
+};
+
+
+export const archiveSurveyDeployment = async (firestore: Firestore, deploymentId: string) => {
+    if (!deploymentId) {
+        throw new Error("ID da pesquisa é obrigatório para arquivar.");
+    }
+    const deploymentRef = doc(firestore, 'survey_deployments', deploymentId);
+    return await updateDoc(deploymentRef, { status: 'archived' });
+};
+
+export const deleteSurveyDeployment = async (firestore: Firestore, deploymentId: string) => {
+    if (!deploymentId) {
+        throw new Error("ID da pesquisa é obrigatório para excluir.");
+    }
+    // Note: This does not delete subcollections (respondents, answers).
+    // A cloud function would be required for cascading deletes.
+    // For now, we just delete the main document.
+    const deploymentRef = doc(firestore, 'survey_deployments', deploymentId);
+    return await deleteDoc(deploymentRef);
 };

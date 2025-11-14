@@ -56,7 +56,7 @@ export interface Respondent {
   answers?: Answer[]; // This will be populated after fetching
 }
 
-export type SurveyStatus = 'draft' | 'active' | 'suspended' | 'closed';
+export type SurveyStatus = 'draft' | 'active' | 'suspended' | 'closed' | 'archived';
 
 export interface SurveyDeployment {
   id: string; // Firestore document ID
