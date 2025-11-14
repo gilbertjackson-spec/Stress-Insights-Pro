@@ -17,14 +17,14 @@ export default function QuestionBreakdown({ questionAnalysis }: QuestionBreakdow
 
     return (
         <div className="p-4 rounded-lg border bg-card shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-4">
                 {/* Question Text */}
-                <div>
+                <div className="flex-1">
                     <p className="text-sm text-muted-foreground">{questionAnalysis.question_code}</p>
                     <p className="font-medium text-base leading-snug">{questionAnalysis.question_text}</p>
                 </div>
                 {/* Sentiment Bar and Score */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 w-[220px]">
                     <div className="flex-1">
                         <SentimentBarChart 
                             favorable={questionAnalysis.sentiment_distribution.favorable_perc} 
@@ -32,7 +32,7 @@ export default function QuestionBreakdown({ questionAnalysis }: QuestionBreakdow
                             unfavorable={questionAnalysis.sentiment_distribution.unfavorable_perc}
                         />
                     </div>
-                    <div className="flex flex-col items-center w-16">
+                    <div className="flex flex-col items-end w-16">
                         <span className="text-xs text-muted-foreground">Média</span>
                         <span className={cn("text-2xl font-bold", getScoreColor(questionAnalysis.average_score))}>
                             {questionAnalysis.average_score.toFixed(2)}

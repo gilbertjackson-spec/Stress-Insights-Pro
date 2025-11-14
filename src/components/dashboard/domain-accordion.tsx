@@ -1,3 +1,4 @@
+'use client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import type { DashboardData } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
@@ -35,19 +36,19 @@ export default function DomainAccordion({ data, isLoading }: DomainAccordionProp
                 {data.domain_analysis.map((domain, index) => {
                     const Icon = DOMAIN_ICONS[domain.domain_name];
                     return (
-                        <AccordionItem value={`item-${index}`} key={domain.domain_id} className="border-none">
-                             <AccordionTrigger className="bg-card hover:bg-secondary/80 px-4 py-3 rounded-lg shadow-sm data-[state=open]:rounded-b-none transition-all">
-                                <div className="flex items-center gap-4">
+                        <AccordionItem value={`item-${index}`} key={domain.domain_id} className="border-b-0 rounded-lg shadow-sm bg-card">
+                             <AccordionTrigger className="px-4 py-3 rounded-lg data-[state=open]:rounded-b-none transition-all hover:no-underline hover:bg-secondary/50">
+                                <div className="flex items-center gap-4 flex-1">
                                     {Icon && <Icon className="h-6 w-6 text-primary" />}
                                     <span className="text-base font-semibold font-headline">{domain.domain_name}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <span className={cn("text-lg font-bold", getScoreColor(domain.domain_score))}>
+                                    <span className={cn("text-xl font-bold", getScoreColor(domain.domain_score))}>
                                         {domain.domain_score.toFixed(2)}
                                     </span>
                                 </div>
                              </AccordionTrigger>
-                             <AccordionContent className="bg-card p-4 rounded-b-lg shadow-sm border-t">
+                             <AccordionContent className="p-4 border-t">
                                 <DomainDetailsCard domain={domain} />
                              </AccordionContent>
                         </AccordionItem>
