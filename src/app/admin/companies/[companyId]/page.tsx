@@ -4,15 +4,11 @@ import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import CompanyDashboard from '@/components/admin/company-dashboard';
+import { useParams } from 'next/navigation';
 
-interface CompanyPageProps {
-  params: {
-    companyId: string;
-  };
-}
-
-export default function CompanyPage({ params }: CompanyPageProps) {
-  const { companyId } = params;
+export default function CompanyPage() {
+  const params = useParams();
+  const companyId = params.companyId as string;
   const firestore = useFirestore();
   const { isUserLoading } = useUser();
 
