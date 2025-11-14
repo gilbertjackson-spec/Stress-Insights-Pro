@@ -13,9 +13,28 @@ import { Button } from '@/components/ui/button';
 import { Bell, Search, BrainCircuit } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { EditProfileDialog } from '../profile/edit-profile-dialog';
 
 export default function AppHeader() {
-  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+  const defaultAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+  const [avatarUrl, setAvatarUrl] = useState(defaultAvatar?.imageUrl);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+
+  useEffect(() => {
+    // This runs only on the client, where localStorage is available.
+    const savedAvatar = localStorage.getItem('user-avatar-url');
+    if (savedAvatar) {
+      setAvatarUrl(savedAvatar);
+    }
+  }, []);
+
+  const handleProfileSave = (newUrl: string) => {
+    setAvatarUrl(newUrl);
+    localStorage.setItem('user-avatar-url', newUrl);
+    setIsProfileDialogOpen(false);
+  };
+
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur-sm sm:px-6">
@@ -49,13 +68,11 @@ export default function AppHeader() {
             className="relative h-8 w-8 rounded-full"
           >
             <Avatar className="h-9 w-9">
-              {userAvatar && (
-                <AvatarImage
-                  src={userAvatar.imageUrl}
-                  alt="User Avatar"
-                  data-ai-hint={userAvatar.imageHint}
-                />
-              )}
+              <AvatarImage
+                src={avatarUrl}
+                alt="User Avatar"
+                data-ai-hint={defaultAvatar?.imageHint}
+              />
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
           </Button>
@@ -63,12 +80,19 @@ export default function AppHeader() {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Perfil</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setIsProfileDialogOpen(true)}>Perfil</DropdownMenuItem>
           <DropdownMenuItem>Configurações</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Sair</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <EditProfileDialog 
+        isOpen={isProfileDialogOpen}
+        onOpenChange={setIsProfileDialogOpen}
+        currentAvatarUrl={avatarUrl || ''}
+        onSave={handleProfileSave}
+      />
     </header>
   );
 }
