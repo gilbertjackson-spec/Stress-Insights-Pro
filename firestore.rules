@@ -60,6 +60,14 @@ service cloud.firestore {
     match /companies/{companyId}/units/{unitId}/sectors/{sectorId} {
       allow read, write: if isSignedIn();
     }
+    
+    /**
+     * @description Allows any signed-in user to manage positions within a company.
+     * This is a simplified rule for initial development.
+     */
+    match /companies/{companyId}/positions/{positionId} {
+        allow read, write: if isSignedIn();
+    }
 
     /**
      * @description Allows any signed-in user to manage survey templates.

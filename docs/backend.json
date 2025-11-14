@@ -73,6 +73,32 @@
         "name"
       ]
     },
+    "Position": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Position",
+      "type": "object",
+      "description": "Represents a job position within a company.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the position.",
+          "format": "uuid"
+        },
+        "companyId": {
+          "type": "string",
+          "description": "Reference to Company. (Relationship: Company 1:N Position)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the position."
+        }
+      },
+      "required": [
+        "id",
+        "companyId",
+        "name"
+      ]
+    },
     "SurveyTemplate": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "SurveyTemplate",
@@ -375,6 +401,26 @@
             {
               "name": "sectorId",
               "description": "The unique identifier of the sector."
+            }
+          ]
+        }
+      },
+      {
+        "path": "companies/{companyId}/positions/{positionId}",
+        "definition": {
+          "entityName": "Position",
+          "schema": {
+            "$ref": "#/backend/entities/Position"
+          },
+          "description": "Stores job position information for a company. ClientAdmins can manage positions within their company.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "The unique identifier of the company."
+            },
+            {
+              "name": "positionId",
+              "description": "The unique identifier of the position."
             }
           ]
         }

@@ -7,10 +7,11 @@ import CompanyDashboard from '@/components/admin/company-dashboard';
 import { useParams } from 'next/navigation';
 import UnitsManagement from '@/components/admin/company-management/units-management';
 import SectorsManagement from '@/components/admin/company-management/sectors-management';
+import PositionsManagement from '@/components/admin/company-management/positions-management';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from 'next/link';
-import { ChevronRight, Building, FileText, BarChart3 } from 'lucide-react';
+import { ChevronRight, Building, FileText, BarChart3, UserCog } from 'lucide-react';
 
 export default function CompanyPage() {
   const params = useParams();
@@ -76,9 +77,10 @@ export default function CompanyPage() {
           <CompanyDashboard company={company} />
         </TabsContent>
         <TabsContent value="structure" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <UnitsManagement companyId={companyId} />
             <SectorsManagement companyId={companyId} />
+            <PositionsManagement companyId={companyId} />
           </div>
         </TabsContent>
         <TabsContent value="reports" className="space-y-4">

@@ -15,9 +15,7 @@ import { AddSectorForm } from './add-sector-form';
 export default function SectorsManagement({ companyId }: { companyId: string }) {
     const firestore = useFirestore();
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-    const [sectors, setSectors] = useState<Sector[]>([]);
-    const [sectorsLoading, setSectorsLoading] = useState(true);
-
+    
     const unitsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         return collection(firestore, 'companies', companyId, 'units');
@@ -25,7 +23,42 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
 
     const { data: units, isLoading: unitsLoading } = useCollection<Unit>(unitsQuery);
 
+    // This is not ideal, but it's a workaround for the lack of a proper sub-collection query hook
+    const [sectors, setSectors] = useState<Sector[]>([]);
+    const [sectorsLoading, setSectorsLoading] = useState(true);
+
     useEffect(() => {
+        const fetchSectors = async () => {
+            if (!firestore || !units) {
+                setSectorsLoading(false);
+                return;
+            };
+
+            setSectorsLoading(true);
+            try {
+                const allSectors: Sector[] = [];
+                for (const unit of units) {
+                    const sectorsCollectionRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
+                    const sectorsSnapshot = await getDocs(sectorsCollectionRef);
+                    sectorsSnapshot.forEach(doc => {
+                        allSectors.push({ ...doc.data(), id: doc.id, unitId: unit.id } as Sector);
+                    });
+                }
+                setSectors(allSectors);
+            } catch (error) {
+                console.error("Error fetching sectors:", error);
+            } finally {
+                setSectorsLoading(false);
+            }
+        };
+
+        fetchSectors();
+    }, [firestore, companyId, units]);
+
+
+    const handleFormFinished = () => {
+        setIsAddDialogOpen(false);
+        // This is a simple way to refetch, not the most efficient but will work
         const fetchSectors = async () => {
             if (!firestore || !units) return;
 
@@ -44,11 +77,9 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
             setSectorsLoading(false);
         };
 
-        if(units) {
-            fetchSectors();
-        }
-    }, [firestore, companyId, units]);
-
+        // Delay slightly to allow Firestore to process the write
+        setTimeout(fetchSectors, 500);
+    }
 
     const isLoading = unitsLoading || sectorsLoading;
 
@@ -80,7 +111,7 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
                         <DialogHeader>
                             <DialogTitle>Adicionar Novo Setor</DialogTitle>
                         </DialogHeader>
-                        <AddSectorForm companyId={companyId} units={units || []} onFinished={() => setIsAddDialogOpen(false)} />
+                        <AddSectorForm companyId={companyId} units={units || []} onFinished={handleFormFinished} />
                     </DialogContent>
                 </Dialog>
             </CardHeader>

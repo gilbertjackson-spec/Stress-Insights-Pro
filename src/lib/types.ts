@@ -31,6 +31,7 @@ export interface SurveyTemplate {
 export interface Demographics {
   unit: string;
   sector: string;
+  position: string;
   current_role_time: string;
   age_range: string;
   health_issue: 'Sim' | 'Não' | 'Prefiro não dizer';
@@ -83,6 +84,12 @@ export interface Sector {
     unitId: string;
 }
 
+export interface Position {
+    id: string;
+    name: string;
+    companyId: string;
+}
+
 
 // Analysis Types
 
@@ -124,6 +131,7 @@ export interface DashboardData {
   demographic_options: {
     units: string[];
     sectors: string[];
+    positions: string[];
     age_ranges: string[];
     current_role_times: string[];
   }
