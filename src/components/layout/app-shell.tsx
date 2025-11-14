@@ -17,6 +17,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // To prevent hydration mismatch, we use a key on the provider or wait for client.
   const defaultOpen = isClient ? document.cookie.includes("sidebar_state=true") : true;
 
+  if (!isClient) {
+    return null; // or a loading skeleton
+  }
+
   return (
     <SidebarProvider defaultOpen={defaultOpen} key={isClient ? 'client' : 'server'}>
       <div className="flex min-h-screen">
