@@ -22,7 +22,7 @@ interface StatusMenuProps {
 const statusConfig: Record<SurveyStatus, { label: string; icon: React.ElementType; color: string; badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
     draft: { label: 'Rascunho', icon: Circle, color: 'text-gray-500', badgeVariant: 'outline' },
     active: { label: 'Aberta', icon: Play, color: 'text-green-500', badgeVariant: 'default' },
-    suspended: { label: 'Suspensa', icon: Ban, color: 'text-yellow-500', badgeVariant: 'secondary' },
+    suspended: { label: 'Pausada', icon: Ban, color: 'text-yellow-500', badgeVariant: 'secondary' },
     closed: { label: 'Encerrada', icon: Square, color: 'text-red-500', badgeVariant: 'destructive' },
     archived: { label: 'Arquivada', icon: Archive, color: 'text-gray-500', badgeVariant: 'outline' },
 };
