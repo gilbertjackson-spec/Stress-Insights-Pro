@@ -1,4 +1,4 @@
-import type { Icon } from "lucide-react";
+import type { ElementType } from "react";
 import { Briefcase, HeartHandshake, Hourglass, RefreshCw, SlidersHorizontal, UserCheck, Users } from "lucide-react";
 import { DEMO_OPTIONS as MockDemoOptions } from './mock-data-fortesting';
 
@@ -23,7 +23,7 @@ export const DEMOGRAPHIC_FILTERS = {
   current_role_time: 'Tempo no cargo',
 };
 
-export const DOMAIN_ICONS: Record<string, Icon> = {
+export const DOMAIN_ICONS: Record<string, ElementType> = {
     "Papéis": Briefcase,
     "Controle": SlidersHorizontal,
     "Demandas": Hourglass,
