@@ -1,6 +1,6 @@
 "use client"
 
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer } from "recharts"
+import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts"
 import type { DomainAnalysis } from "@/lib/types"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart"
 
@@ -23,25 +23,23 @@ export default function DomainsRadarChart({ data }: DomainsRadarChartProps) {
   };
 
   return (
-    <div className="h-[350px] w-full">
-        <ChartContainer config={chartConfig} className="w-full h-full">
-            <ResponsiveContainer>
-                <RadarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                    <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent indicator="line" />}
-                    />
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <Radar
-                        name="Score"
-                        dataKey="score"
-                        stroke="hsl(var(--chart-1))"
-                        fill="hsl(var(--chart-1))"
-                        fillOpacity={0.6}
-                    />
-                </RadarChart>
-            </ResponsiveContainer>
+    <div className="h-[350px] w-full flex justify-center">
+        <ChartContainer config={chartConfig} className="w-full max-w-[400px] h-full">
+             <RadarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="line" />}
+                />
+                <PolarGrid />
+                <PolarAngleAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <Radar
+                    name="Score"
+                    dataKey="score"
+                    stroke="hsl(var(--chart-1))"
+                    fill="hsl(var(--chart-1))"
+                    fillOpacity={0.6}
+                />
+            </RadarChart>
         </ChartContainer>
     </div>
   )
