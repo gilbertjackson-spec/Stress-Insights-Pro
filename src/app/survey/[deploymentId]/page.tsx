@@ -147,7 +147,7 @@ export default function SurveyPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-muted/40 p-4">
-      <Card className="w-full max-w-4xl">
+      <Card className="w-full max-w-4xl shadow-2xl">
         {renderStep()}
       </Card>
     </div>
