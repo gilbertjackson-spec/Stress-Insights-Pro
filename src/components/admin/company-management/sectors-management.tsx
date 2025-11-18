@@ -32,13 +32,19 @@ import { deleteSector } from '@/lib/sector-service';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export default function SectorsManagement({ companyId }: { companyId: string }) {
+interface SectorsManagementProps {
+    companyId: string;
+    selectedUnit: string;
+    selectedSector: string;
+    onSectorChange: (sectorId: string) => void;
+}
+
+export default function SectorsManagement({ companyId, selectedUnit, selectedSector, onSectorChange }: SectorsManagementProps) {
     const firestore = useFirestore();
     const { toast } = useToast();
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [selectedSector, setSelectedSector] = useState<Sector | null>(null);
-    const [filter, setFilter] = useState('all');
+    const [sectorToDelete, setSectorToDelete] = useState<Sector | null>(null);
     
     const unitsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -47,7 +53,7 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
 
     const { data: units, isLoading: unitsLoading } = useCollection<Unit>(unitsQuery);
 
-    const [sectors, setSectors] = useState<Sector[]>([]);
+    const [allSectors, setAllSectors] = useState<Sector[]>([]);
     const [sectorsLoading, setSectorsLoading] = useState(true);
 
     const fetchSectors = async () => {
@@ -58,15 +64,15 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
 
         setSectorsLoading(true);
         try {
-            const allSectors: Sector[] = [];
+            const fetchedSectors: Sector[] = [];
             for (const unit of units) {
                 const sectorsCollectionRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
                 const sectorsSnapshot = await getDocs(sectorsCollectionRef);
                 sectorsSnapshot.forEach(doc => {
-                    allSectors.push({ ...doc.data(), id: doc.id, unitId: unit.id } as Sector);
+                    fetchedSectors.push({ ...doc.data(), id: doc.id, unitId: unit.id } as Sector);
                 });
             }
-            setSectors(allSectors);
+            setAllSectors(fetchedSectors);
         } catch (error) {
             console.error("Error fetching sectors:", error);
         } finally {
@@ -74,9 +80,10 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
         }
     };
 
-
     useEffect(() => {
-        fetchSectors();
+        if(units) {
+            fetchSectors();
+        }
     }, [firestore, companyId, units]);
 
 
@@ -86,17 +93,17 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
     }
     
     const openDeleteDialog = (sector: Sector) => {
-        setSelectedSector(sector);
+        setSectorToDelete(sector);
         setIsDeleteDialogOpen(true);
     };
 
     const handleDelete = async () => {
-        if (!firestore || !selectedSector) return;
+        if (!firestore || !sectorToDelete) return;
         try {
-            await deleteSector(firestore, companyId, selectedSector.unitId, selectedSector.id);
+            await deleteSector(firestore, companyId, sectorToDelete.unitId, sectorToDelete.id);
             toast({
                 title: "Setor Excluído",
-                description: `O setor "${selectedSector.name}" foi excluído com sucesso.`,
+                description: `O setor "${sectorToDelete.name}" foi excluído com sucesso.`,
             });
             setTimeout(fetchSectors, 500);
         } catch (error) {
@@ -107,25 +114,26 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
             });
         } finally {
             setIsDeleteDialogOpen(false);
-            setSelectedSector(null);
+            setSectorToDelete(null);
         }
     }
 
     const isLoading = unitsLoading || sectorsLoading;
-
     const getUnitName = (unitId: string) => units?.find(u => u.id === unitId)?.name || '...';
 
-    const sortedSectors = useMemo(() => {
-        if (!sectors) return [];
-        return [...sectors].sort((a, b) => a.name.localeCompare(b.name));
-    }, [sectors]);
+    const sortedSectorsForFilter = useMemo(() => {
+        const sectorsToList = selectedUnit === 'all' 
+            ? allSectors 
+            : allSectors.filter(sector => sector.unitId === selectedUnit);
+        return [...sectorsToList].sort((a, b) => a.name.localeCompare(b.name));
+    }, [allSectors, selectedUnit]);
 
-    const filteredSectors = useMemo(() => {
-        if (filter === 'all') return sortedSectors;
-        return sortedSectors.filter(sector => sector.id === filter);
-    }, [sortedSectors, filter]);
+    const displayedSectors = useMemo(() => {
+        if (selectedSector === 'all') return sortedSectorsForFilter;
+        return sortedSectorsForFilter.filter(sector => sector.id === selectedSector);
+    }, [sortedSectorsForFilter, selectedSector]);
 
-    const sectorsWithUnitNames = filteredSectors.map(sector => ({
+    const sectorsWithUnitNames = displayedSectors.map(sector => ({
         ...sector,
         unitName: getUnitName(sector.unitId),
     }));
@@ -157,13 +165,13 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
                     </Dialog>
                 </CardHeader>
                 <CardContent>
-                    <Select value={filter} onValueChange={setFilter} disabled={isLoading || !sortedSectors.length}>
+                    <Select value={selectedSector} onValueChange={onSectorChange} disabled={isLoading || !sortedSectorsForFilter.length}>
                         <SelectTrigger className="mb-4">
                             <SelectValue placeholder="Filtrar setores..." />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">Todos os setores</SelectItem>
-                            {sortedSectors.map(sector => (
+                            {sortedSectorsForFilter.map(sector => (
                                 <SelectItem key={sector.id} value={sector.id}>{sector.name} ({getUnitName(sector.unitId)})</SelectItem>
                             ))}
                         </SelectContent>
@@ -212,7 +220,7 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={3} className="h-24 text-center">
-                                            {units && units.length > 0 ? 'Nenhum setor encontrado.' : 'Cadastre uma unidade primeiro.'}
+                                            {selectedUnit !== 'all' ? 'Nenhum setor nesta unidade.' : (units && units.length > 0 ? 'Nenhum setor encontrado.' : 'Cadastre uma unidade primeiro.')}
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -229,7 +237,7 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
                     <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                     <AlertDialogDescription>
                         Esta ação não pode ser desfeita. Isso excluirá permanentemente o setor
-                        <span className="font-bold"> {selectedSector?.name} </span>.
+                        <span className="font-bold"> {sectorToDelete?.name} </span>.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

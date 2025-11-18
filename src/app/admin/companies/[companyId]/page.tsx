@@ -8,10 +8,10 @@ import { useParams } from 'next/navigation';
 import UnitsManagement from '@/components/admin/company-management/units-management';
 import SectorsManagement from '@/components/admin/company-management/sectors-management';
 import PositionsManagement from '@/components/admin/company-management/positions-management';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from 'next/link';
-import { ChevronRight, Building, FileText, BarChart3, UserCog } from 'lucide-react';
+import { ChevronRight, Building, FileText, BarChart3 } from 'lucide-react';
+import { useState } from 'react';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +19,9 @@ export default function CompanyPage() {
   const params = useParams();
   const companyId = params.companyId as string;
   const firestore = useFirestore();
+
+  const [selectedUnit, setSelectedUnit] = useState<string>('all');
+  const [selectedSector, setSelectedSector] = useState<string>('all');
 
   const companyRef = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -28,6 +31,11 @@ export default function CompanyPage() {
   const { data: company, isLoading: isCompanyLoading } = useDoc(companyRef);
   
   const isLoading = isCompanyLoading;
+
+  const handleUnitChange = (unitId: string) => {
+    setSelectedUnit(unitId);
+    setSelectedSector('all'); // Reset sector filter when unit changes
+  };
 
   if (isLoading) {
     return (
@@ -80,9 +88,22 @@ export default function CompanyPage() {
         </TabsContent>
         <TabsContent value="structure" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <UnitsManagement companyId={companyId} />
-            <SectorsManagement companyId={companyId} />
-            <PositionsManagement companyId={companyId} />
+            <UnitsManagement 
+              companyId={companyId}
+              selectedUnit={selectedUnit}
+              onUnitChange={handleUnitChange}
+            />
+            <SectorsManagement 
+              companyId={companyId} 
+              selectedUnit={selectedUnit}
+              selectedSector={selectedSector}
+              onSectorChange={setSelectedSector}
+            />
+            <PositionsManagement 
+              companyId={companyId} 
+              selectedUnit={selectedUnit}
+              selectedSector={selectedSector}
+            />
           </div>
         </TabsContent>
         <TabsContent value="reports" className="space-y-4">

@@ -32,13 +32,19 @@ import { deletePosition } from '@/lib/position-service';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export default function PositionsManagement({ companyId }: { companyId: string }) {
+interface PositionsManagementProps {
+    companyId: string;
+    selectedUnit: string;
+    selectedSector: string;
+}
+
+export default function PositionsManagement({ companyId, selectedUnit, selectedSector }: PositionsManagementProps) {
     const firestore = useFirestore();
     const { toast } = useToast();
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
-    const [filter, setFilter] = useState('all');
+    const [positionToDelete, setPositionToDelete] = useState<Position | null>(null);
+    const [selectedPositionFilter, setSelectedPositionFilter] = useState('all');
 
     // Data hooks
     const unitsQuery = useMemoFirebase(() => {
@@ -47,92 +53,73 @@ export default function PositionsManagement({ companyId }: { companyId: string }
     }, [firestore, companyId]);
     const { data: units, isLoading: unitsLoading } = useCollection<Unit>(unitsQuery);
 
-    const [sectors, setSectors] = useState<Sector[]>([]);
+    const [allSectors, setAllSectors] = useState<Sector[]>([]);
     const [sectorsLoading, setSectorsLoading] = useState(true);
-    const [positions, setPositions] = useState<Position[]>([]);
+    const [allPositions, setAllPositions] = useState<Position[]>([]);
     const [positionsLoading, setPositionsLoading] = useState(true);
 
-    // Fetch sectors when units are available
-    useEffect(() => {
-        const fetchSectors = async () => {
-            if (!firestore || !units) {
-                if (!unitsLoading) setSectorsLoading(false);
-                return;
-            }
-            setSectorsLoading(true);
-            try {
-                const allSectors: Sector[] = [];
-                for (const unit of units) {
-                    const sectorsRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
-                    const sectorsSnap = await getDocs(sectorsRef);
-                    sectorsSnap.forEach(doc => {
-                        allSectors.push({ ...doc.data(), id: doc.id, unitId: unit.id } as Sector);
-                    });
-                }
-                setSectors(allSectors);
-            } catch (error) {
-                console.error("Error fetching sectors for positions:", error);
-            } finally {
+    const fetchSectorsAndPositions = async () => {
+        if (!firestore || !units) {
+            if (!unitsLoading) {
                 setSectorsLoading(false);
+                setPositionsLoading(false);
             }
-        };
-        fetchSectors();
-    }, [firestore, companyId, units, unitsLoading]);
-
-    // Fetch positions when sectors are available
-    const fetchPositions = async () => {
-        if (!firestore || !sectors || !units) {
-            if(!sectorsLoading) setPositionsLoading(false);
             return;
         }
+        setSectorsLoading(true);
         setPositionsLoading(true);
         try {
-            const allPositions: Position[] = [];
-            for (const sector of sectors) {
-                // Correctly find unitId from the unit associated with the sector
-                const unitId = sector.unitId;
-                if (!unitId) continue;
-                const positionsRef = collection(firestore, 'companies', companyId, 'units', unitId, 'sectors', sector.id, 'positions');
-                const positionsSnap = await getDocs(positionsRef);
-                positionsSnap.forEach(doc => {
-                    allPositions.push({ ...doc.data(), id: doc.id, sectorId: sector.id, unitId: unitId } as Position);
-                });
+            const fetchedSectors: Sector[] = [];
+            const fetchedPositions: Position[] = [];
+            for (const unit of units) {
+                const sectorsRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
+                const sectorsSnap = await getDocs(sectorsRef);
+                for (const sectorDoc of sectorsSnap.docs) {
+                    const sectorData = { ...sectorDoc.data(), id: sectorDoc.id, unitId: unit.id } as Sector
+                    fetchedSectors.push(sectorData);
+                    
+                    const positionsRef = collection(sectorDoc.ref, 'positions');
+                    const positionsSnap = await getDocs(positionsRef);
+                    positionsSnap.forEach(posDoc => {
+                        fetchedPositions.push({ ...posDoc.data(), id: posDoc.id, sectorId: sectorDoc.id, unitId: unit.id } as Position);
+                    });
+                }
             }
-            setPositions(allPositions);
+            setAllSectors(fetchedSectors);
+            setAllPositions(fetchedPositions);
         } catch (error) {
-            console.error("Error fetching positions:", error);
+            console.error("Error fetching sectors/positions:", error);
         } finally {
+            setSectorsLoading(false);
             setPositionsLoading(false);
         }
     };
     
     useEffect(() => {
-        // This check is important. It ensures that we only fetch positions
-        // once the sectors (and by extension, units) have finished loading.
-        if(!sectorsLoading) {
-            fetchPositions();
+        if (units) {
+            fetchSectorsAndPositions();
         }
-    }, [firestore, companyId, sectors, units, sectorsLoading]);
+    }, [firestore, companyId, units]);
 
     const handleFormFinished = () => {
         setIsAddDialogOpen(false);
-        setTimeout(fetchPositions, 500); // refetch
+        setTimeout(fetchSectorsAndPositions, 500); // refetch
     }
 
     const openDeleteDialog = (position: Position) => {
-        setSelectedPosition(position);
+        setPositionToDelete(position);
         setIsDeleteDialogOpen(true);
     };
 
     const handleDelete = async () => {
-        if (!firestore || !selectedPosition) return;
+        if (!firestore || !positionToDelete) return;
         try {
-            await deletePosition(firestore, companyId, selectedPosition.unitId, selectedPosition.sectorId, selectedPosition.id);
+            await deletePosition(firestore, companyId, positionToDelete.unitId, positionToDelete.sectorId, positionToDelete.id);
             toast({
                 title: "Cargo Excluído",
-                description: `O cargo "${selectedPosition.name}" foi excluído com sucesso.`,
+                description: `O cargo "${positionToDelete.name}" foi excluído com sucesso.`,
             });
-            setTimeout(fetchPositions, 500); // refetch
+            setTimeout(fetchSectorsAndPositions, 500); // refetch
         } catch (error) {
              toast({
                 variant: "destructive",
@@ -141,35 +128,43 @@ export default function PositionsManagement({ companyId }: { companyId: string }
             });
         } finally {
             setIsDeleteDialogOpen(false);
-            setSelectedPosition(null);
+            setPositionToDelete(null);
         }
     }
-
 
     const isLoading = unitsLoading || sectorsLoading || positionsLoading;
 
     const getUnitName = (unitId: string) => units?.find(u => u.id === unitId)?.name || '...';
-    const getSectorName = (sectorId: string) => sectors?.find(s => s.id === sectorId)?.name || '...';
+    const getSectorName = (sectorId: string) => allSectors?.find(s => s.id === sectorId)?.name || '...';
 
-    const sortedPositions = useMemo(() => {
-        if (!positions) return [];
-        return [...positions].sort((a, b) => a.name.localeCompare(b.name));
-    }, [positions]);
-
-    const filteredPositions = useMemo(() => {
-        if (filter === 'all') return sortedPositions;
-        return sortedPositions.filter(pos => pos.id === filter);
-    }, [sortedPositions, filter, sectors, units]);
-
-    const positionsWithNames = filteredPositions.map(pos => {
-        const sector = sectors.find(s => s.id === pos.sectorId);
-        const unit = sector ? units?.find(u => u.id === sector.unitId) : undefined;
-        return {
-            ...pos,
-            sectorName: sector?.name || '...',
-            unitName: unit?.name || '...'
+    const positionsForFilter = useMemo(() => {
+        let filtered = allPositions;
+        if (selectedUnit !== 'all') {
+            filtered = filtered.filter(pos => pos.unitId === selectedUnit);
         }
-    });
+        if (selectedSector !== 'all') {
+            filtered = filtered.filter(pos => pos.sectorId === selectedSector);
+        }
+        return [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+    }, [allPositions, selectedUnit, selectedSector]);
+    
+    const displayedPositions = useMemo(() => {
+        if (selectedPositionFilter === 'all') return positionsForFilter;
+        return positionsForFilter.filter(pos => pos.id === selectedPositionFilter);
+    }, [positionsForFilter, selectedPositionFilter]);
+
+    const positionsWithNames = displayedPositions.map(pos => ({
+        ...pos,
+        sectorName: getSectorName(pos.sectorId),
+        unitName: getUnitName(pos.unitId)
+    }));
+    
+    const canAdd = useMemo(() => {
+        if (!units || units.length === 0) return false;
+        if(selectedUnit === 'all') return allSectors.length > 0;
+        return allSectors.some(s => s.unitId === selectedUnit);
+    }, [units, allSectors, selectedUnit]);
+
 
     return (
         <>
@@ -184,7 +179,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                     </div>
                     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                         <DialogTrigger asChild>
-                             <Button variant="outline" size="sm" disabled={!sectors || sectors.length === 0}>
+                             <Button variant="outline" size="sm" disabled={!canAdd}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Adicionar
                             </Button>
@@ -198,13 +193,13 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                     </Dialog>
                 </CardHeader>
                 <CardContent>
-                    <Select value={filter} onValueChange={setFilter} disabled={isLoading || !sortedPositions.length}>
+                    <Select value={selectedPositionFilter} onValueChange={setSelectedPositionFilter} disabled={isLoading || !positionsForFilter.length}>
                         <SelectTrigger className="mb-4">
                             <SelectValue placeholder="Filtrar cargos..." />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">Todos os cargos</SelectItem>
-                            {sortedPositions.map(pos => (
+                            {positionsForFilter.map(pos => (
                                 <SelectItem key={pos.id} value={pos.id}>
                                     {pos.name} ({getSectorName(pos.sectorId)} / {getUnitName(pos.unitId)})
                                 </SelectItem>
@@ -257,7 +252,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={4} className="h-24 text-center">
-                                            {sectors && sectors.length > 0 ? 'Nenhum cargo encontrado.' : 'Cadastre unidades e setores primeiro.'}
+                                            {selectedSector !== 'all' ? 'Nenhum cargo neste setor.' : selectedUnit !== 'all' ? 'Nenhum cargo nesta unidade.' : 'Nenhum cargo encontrado.'}
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -274,7 +269,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                     <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                     <AlertDialogDescription>
                         Esta ação não pode ser desfeita. Isso excluirá permanentemente o cargo
-                        <span className="font-bold"> {selectedPosition?.name} </span>.
+                        <span className="font-bold"> {positionToDelete?.name} </span>.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -288,4 +283,3 @@ export default function PositionsManagement({ companyId }: { companyId: string }
         </>
     );
 }
-    

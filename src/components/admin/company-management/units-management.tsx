@@ -33,15 +33,20 @@ import { useToast } from '@/hooks/use-toast';
 import { EditUnitForm } from './edit-unit-form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+interface UnitsManagementProps {
+    companyId: string;
+    selectedUnit: string;
+    onUnitChange: (unitId: string) => void;
+}
 
-export default function UnitsManagement({ companyId }: { companyId: string }) {
+export default function UnitsManagement({ companyId, selectedUnit, onUnitChange }: UnitsManagementProps) {
     const firestore = useFirestore();
     const { toast } = useToast();
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
-    const [filter, setFilter] = useState('all');
+    const [unitToDelete, setUnitToDelete] = useState<Unit | null>(null);
+    const [unitToEdit, setUnitToEdit] = useState<Unit | null>(null);
 
     const unitsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -56,9 +61,9 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
     }, [units]);
 
     const filteredUnits = useMemo(() => {
-        if (filter === 'all') return sortedUnits;
-        return sortedUnits.filter(unit => unit.id === filter);
-    }, [sortedUnits, filter]);
+        if (selectedUnit === 'all') return sortedUnits;
+        return sortedUnits.filter(unit => unit.id === selectedUnit);
+    }, [sortedUnits, selectedUnit]);
 
 
     const handleFormFinished = () => {
@@ -70,22 +75,22 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
     }
 
     const openEditDialog = (unit: Unit) => {
-        setSelectedUnit(unit);
+        setUnitToEdit(unit);
         setIsEditDialogOpen(true);
     };
 
     const openDeleteDialog = (unit: Unit) => {
-        setSelectedUnit(unit);
+        setUnitToDelete(unit);
         setIsDeleteDialogOpen(true);
     };
 
     const handleDelete = async () => {
-        if (!firestore || !selectedUnit) return;
+        if (!firestore || !unitToDelete) return;
         try {
-            await deleteUnit(firestore, companyId, selectedUnit.id);
+            await deleteUnit(firestore, companyId, unitToDelete.id);
             toast({
                 title: "Unidade Excluída",
-                description: `A unidade "${selectedUnit.name}" foi excluída com sucesso.`,
+                description: `A unidade "${unitToDelete.name}" foi excluída com sucesso.`,
             });
             if (refetch) {
                 setTimeout(refetch, 500);
@@ -98,7 +103,7 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
             });
         } finally {
             setIsDeleteDialogOpen(false);
-            setSelectedUnit(null);
+            setUnitToDelete(null);
         }
     }
 
@@ -129,7 +134,7 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
                     </Dialog>
                 </CardHeader>
                 <CardContent>
-                    <Select value={filter} onValueChange={setFilter} disabled={isLoading || !sortedUnits.length}>
+                    <Select value={selectedUnit} onValueChange={onUnitChange} disabled={isLoading || !sortedUnits.length}>
                         <SelectTrigger className="mb-4">
                             <SelectValue placeholder="Filtrar unidades..." />
                         </SelectTrigger>
@@ -196,10 +201,10 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
                     <DialogHeader>
                         <DialogTitle>Editar Unidade</DialogTitle>
                     </DialogHeader>
-                    {selectedUnit && (
+                    {unitToEdit && (
                         <EditUnitForm
                             companyId={companyId}
-                            unit={selectedUnit}
+                            unit={unitToEdit}
                             onFinished={handleFormFinished}
                         />
                     )}
@@ -213,7 +218,7 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
                     <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                     <AlertDialogDescription>
                         Esta ação não pode ser desfeita. Isso excluirá permanentemente a unidade
-                        <span className="font-bold"> {selectedUnit?.name} </span>
+                        <span className="font-bold"> {unitToDelete?.name} </span>
                         e todos os seus dados associados (como setores).
                     </AlertDialogDescription>
                     </AlertDialogHeader>
