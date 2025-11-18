@@ -84,9 +84,9 @@
           "description": "Unique identifier for the position.",
           "format": "uuid"
         },
-        "companyId": {
+        "sectorId": {
           "type": "string",
-          "description": "Reference to Company. (Relationship: Company 1:N Position)"
+          "description": "Reference to Sector. (Relationship: Sector 1:N Position)"
         },
         "name": {
           "type": "string",
@@ -95,7 +95,7 @@
       },
       "required": [
         "id",
-        "companyId",
+        "sectorId",
         "name"
       ]
     },
@@ -366,11 +366,11 @@
       },
       "description": "Stores sector information within a unit. ClientAdmins can manage sectors within their company."
     },
-    "/companies/{companyId}/positions/{positionId}": {
+    "/companies/{companyId}/units/{unitId}/sectors/{sectorId}/positions/{positionId}": {
       "schema": {
         "$ref": "#/entities/Position"
       },
-      "description": "Stores job position information for a company. ClientAdmins can manage positions within their company."
+      "description": "Stores job position information for a sector. ClientAdmins can manage positions within their company."
     },
     "/survey_templates/{templateId}": {
       "schema": {
@@ -410,3 +410,5 @@
     }
   }
 }
+
+    

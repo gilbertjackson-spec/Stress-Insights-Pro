@@ -90,7 +90,8 @@ export interface Sector {
 export interface Position {
     id: string;
     name: string;
-    companyId: string;
+    sectorId: string;
+    unitId: string;
 }
 
 
@@ -141,3 +142,4 @@ export interface DashboardData {
   }
 }
 
+    

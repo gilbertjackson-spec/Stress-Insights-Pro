@@ -44,10 +44,10 @@ service cloud.firestore {
     }
     
     /**
-     * @description Allows any signed-in user to manage positions within a company.
+     * @description Allows any signed-in user to manage positions within a sector.
      * This is a simplified rule for initial development.
      */
-    match /companies/{companyId}/positions/{positionId} {
+    match /companies/{companyId}/units/{unitId}/sectors/{sectorId}/positions/{positionId} {
         allow read, write: if isSignedIn();
     }
 
@@ -108,3 +108,5 @@ service cloud.firestore {
     return request.auth != null;
   }
 }
+
+    

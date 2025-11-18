@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, UserCog, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddPositionForm } from './add-position-form';
-import type { Position } from '@/lib/types';
+import type { Position, Unit, Sector } from '@/lib/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,18 +38,78 @@ export default function PositionsManagement({ companyId }: { companyId: string }
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
 
-    const positionsQuery = useMemoFirebase(() => {
+    // Data hooks
+    const unitsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        return collection(firestore, 'companies', companyId, 'positions');
+        return collection(firestore, 'companies', companyId, 'units');
     }, [firestore, companyId]);
+    const { data: units, isLoading: unitsLoading } = useCollection<Unit>(unitsQuery);
 
-    const { data: positions, isLoading, refetch } = useCollection<Position>(positionsQuery);
+    const [sectors, setSectors] = useState<Sector[]>([]);
+    const [sectorsLoading, setSectorsLoading] = useState(true);
+    const [positions, setPositions] = useState<Position[]>([]);
+    const [positionsLoading, setPositionsLoading] = useState(true);
+
+    // Fetch sectors when units are available
+    useEffect(() => {
+        const fetchSectors = async () => {
+            if (!firestore || !units) {
+                if (!unitsLoading) setSectorsLoading(false);
+                return;
+            }
+            setSectorsLoading(true);
+            try {
+                const allSectors: Sector[] = [];
+                for (const unit of units) {
+                    const sectorsRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
+                    const sectorsSnap = await getDocs(sectorsRef);
+                    sectorsSnap.forEach(doc => {
+                        allSectors.push({ ...doc.data(), id: doc.id } as Sector);
+                    });
+                }
+                setSectors(allSectors);
+            } catch (error) {
+                console.error("Error fetching sectors for positions:", error);
+            } finally {
+                setSectorsLoading(false);
+            }
+        };
+        fetchSectors();
+    }, [firestore, companyId, units]);
+
+    // Fetch positions when sectors are available
+    const fetchPositions = async () => {
+        if (!firestore || !sectors) {
+            if(!sectorsLoading) setPositionsLoading(false);
+            return;
+        }
+        setPositionsLoading(true);
+        try {
+            const allPositions: Position[] = [];
+            for (const sector of sectors) {
+                const unitId = units?.find(u => u.id === sector.unitId)?.id;
+                if (!unitId) continue;
+                const positionsRef = collection(firestore, 'companies', companyId, 'units', unitId, 'sectors', sector.id, 'positions');
+                const positionsSnap = await getDocs(positionsRef);
+                positionsSnap.forEach(doc => {
+                    allPositions.push({ ...doc.data(), id: doc.id, sectorId: sector.id, unitId: unitId } as Position);
+                });
+            }
+            setPositions(allPositions);
+        } catch (error) {
+            console.error("Error fetching positions:", error);
+        } finally {
+            setPositionsLoading(false);
+        }
+    };
+    
+    useEffect(() => {
+        fetchPositions();
+    }, [firestore, companyId, sectors, units]);
 
     const handleFormFinished = () => {
         setIsAddDialogOpen(false);
-        if (refetch) {
-            setTimeout(refetch, 500);
-        }
+        setTimeout(fetchPositions, 500); // refetch
     }
 
     const openDeleteDialog = (position: Position) => {
@@ -60,14 +120,12 @@ export default function PositionsManagement({ companyId }: { companyId: string }
     const handleDelete = async () => {
         if (!firestore || !selectedPosition) return;
         try {
-            await deletePosition(firestore, companyId, selectedPosition.id);
+            await deletePosition(firestore, companyId, selectedPosition.unitId, selectedPosition.sectorId, selectedPosition.id);
             toast({
                 title: "Cargo Excluído",
                 description: `O cargo "${selectedPosition.name}" foi excluído com sucesso.`,
             });
-             if (refetch) {
-                setTimeout(refetch, 500);
-            }
+            setTimeout(fetchPositions, 500); // refetch
         } catch (error) {
              toast({
                 variant: "destructive",
@@ -80,6 +138,21 @@ export default function PositionsManagement({ companyId }: { companyId: string }
         }
     }
 
+
+    const isLoading = unitsLoading || sectorsLoading || positionsLoading;
+
+    const getUnitName = (unitId: string) => units?.find(u => u.id === unitId)?.name || '...';
+    const getSectorName = (sectorId: string) => sectors?.find(s => s.id === sectorId)?.name || '...';
+
+    const positionsWithNames = positions?.map(pos => {
+        const sector = sectors.find(s => s.id === pos.sectorId);
+        const unit = sector ? units?.find(u => u.id === sector.unitId) : undefined;
+        return {
+            ...pos,
+            sectorName: sector?.name || '...',
+            unitName: unit?.name || '...'
+        }
+    });
 
     return (
         <>
@@ -94,7 +167,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                     </div>
                     <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">
+                             <Button variant="outline" size="sm" disabled={!sectors || sectors.length === 0}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Adicionar
                             </Button>
@@ -103,7 +176,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                             <DialogHeader>
                                 <DialogTitle>Adicionar Novo Cargo</DialogTitle>
                             </DialogHeader>
-                            <AddPositionForm companyId={companyId} onFinished={handleFormFinished} />
+                            <AddPositionForm companyId={companyId} units={units || []} onFinished={handleFormFinished} />
                         </DialogContent>
                     </Dialog>
                 </CardHeader>
@@ -113,18 +186,22 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Nome do Cargo</TableHead>
+                                    <TableHead>Setor</TableHead>
+                                    <TableHead>Unidade</TableHead>
                                     <TableHead className="text-right w-[50px]">Ações</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {isLoading ? (
                                     Array.from({ length: 3 }).map((_, i) => (
-                                        <TableRow key={i}><TableCell colSpan={2}><Skeleton className="h-5 w-full" /></TableCell></TableRow>
+                                        <TableRow key={i}><TableCell colSpan={4}><Skeleton className="h-5 w-full" /></TableCell></TableRow>
                                     ))
-                                ) : positions && positions.length > 0 ? (
-                                    positions.map((position) => (
+                                ) : positionsWithNames && positionsWithNames.length > 0 ? (
+                                    positionsWithNames.map((position) => (
                                         <TableRow key={position.id}>
                                             <TableCell>{position.name}</TableCell>
+                                            <TableCell className="text-muted-foreground">{position.sectorName}</TableCell>
+                                            <TableCell className="text-muted-foreground">{position.unitName}</TableCell>
                                             <TableCell className="text-right">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
@@ -149,7 +226,9 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={2} className="h-24 text-center">Nenhum cargo cadastrado.</TableCell>
+                                        <TableCell colSpan={4} className="h-24 text-center">
+                                            {sectors && sectors.length > 0 ? 'Nenhum cargo cadastrado.' : 'Cadastre unidades e setores primeiro.'}
+                                        </TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -179,3 +258,4 @@ export default function PositionsManagement({ companyId }: { companyId: string }
         </>
     );
 }
+    
