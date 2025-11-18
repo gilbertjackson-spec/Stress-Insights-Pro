@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { deletePosition } from '@/lib/position-service';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 
 export default function PositionsManagement({ companyId }: { companyId: string }) {
     const firestore = useFirestore();
@@ -37,6 +38,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
+    const [filter, setFilter] = useState('');
 
     // Data hooks
     const unitsQuery = useMemoFirebase(() => {
@@ -87,7 +89,8 @@ export default function PositionsManagement({ companyId }: { companyId: string }
         try {
             const allPositions: Position[] = [];
             for (const sector of sectors) {
-                const unitId = units.find(u => u.id === sector.unitId)?.id;
+                // Correctly find unitId from the unit associated with the sector
+                const unitId = sector.unitId;
                 if (!unitId) continue;
                 const positionsRef = collection(firestore, 'companies', companyId, 'units', unitId, 'sectors', sector.id, 'positions');
                 const positionsSnap = await getDocs(positionsRef);
@@ -148,7 +151,24 @@ export default function PositionsManagement({ companyId }: { companyId: string }
     const getUnitName = (unitId: string) => units?.find(u => u.id === unitId)?.name || '...';
     const getSectorName = (sectorId: string) => sectors?.find(s => s.id === sectorId)?.name || '...';
 
-    const positionsWithNames = positions?.map(pos => {
+    const sortedPositions = useMemo(() => {
+        if (!positions) return [];
+        return [...positions].sort((a, b) => a.name.localeCompare(b.name));
+    }, [positions]);
+
+    const filteredPositions = useMemo(() => {
+        return sortedPositions.filter(pos => {
+            const sector = sectors.find(s => s.id === pos.sectorId);
+            const unit = sector ? units?.find(u => u.id === sector.unitId) : undefined;
+            const searchTerm = filter.toLowerCase();
+
+            return pos.name.toLowerCase().includes(searchTerm) ||
+                   (sector && sector.name.toLowerCase().includes(searchTerm)) ||
+                   (unit && unit.name.toLowerCase().includes(searchTerm));
+        });
+    }, [sortedPositions, filter, sectors, units]);
+
+    const positionsWithNames = filteredPositions.map(pos => {
         const sector = sectors.find(s => s.id === pos.sectorId);
         const unit = sector ? units?.find(u => u.id === sector.unitId) : undefined;
         return {
@@ -185,6 +205,12 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                     </Dialog>
                 </CardHeader>
                 <CardContent>
+                    <Input
+                        placeholder="Filtrar cargos..."
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        className="mb-4"
+                    />
                     <div className="border rounded-lg max-h-64 overflow-y-auto">
                         <Table>
                             <TableHeader>
@@ -231,7 +257,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={4} className="h-24 text-center">
-                                            {sectors && sectors.length > 0 ? 'Nenhum cargo cadastrado.' : 'Cadastre unidades e setores primeiro.'}
+                                            {sectors && sectors.length > 0 ? 'Nenhum cargo encontrado.' : 'Cadastre unidades e setores primeiro.'}
                                         </TableCell>
                                     </TableRow>
                                 )}

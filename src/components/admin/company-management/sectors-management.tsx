@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { deleteSector } from '@/lib/sector-service';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 
 export default function SectorsManagement({ companyId }: { companyId: string }) {
     const firestore = useFirestore();
@@ -37,6 +38,7 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedSector, setSelectedSector] = useState<Sector | null>(null);
+    const [filter, setFilter] = useState('');
     
     const unitsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -113,7 +115,19 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
 
     const getUnitName = (unitId: string) => units?.find(u => u.id === unitId)?.name || '...';
 
-    const sectorsWithUnitNames = sectors?.map(sector => ({
+    const sortedSectors = useMemo(() => {
+        if (!sectors) return [];
+        return [...sectors].sort((a, b) => a.name.localeCompare(b.name));
+    }, [sectors]);
+
+    const filteredSectors = useMemo(() => {
+        return sortedSectors.filter(sector => 
+            sector.name.toLowerCase().includes(filter.toLowerCase()) ||
+            getUnitName(sector.unitId).toLowerCase().includes(filter.toLowerCase())
+        );
+    }, [sortedSectors, filter, units]);
+
+    const sectorsWithUnitNames = filteredSectors.map(sector => ({
         ...sector,
         unitName: getUnitName(sector.unitId),
     }));
@@ -145,6 +159,12 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
                     </Dialog>
                 </CardHeader>
                 <CardContent>
+                    <Input
+                        placeholder="Filtrar setores..."
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        className="mb-4"
+                    />
                     <div className="border rounded-lg max-h-64 overflow-y-auto">
                         <Table>
                             <TableHeader>
@@ -189,7 +209,7 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={3} className="h-24 text-center">
-                                            {units && units.length > 0 ? 'Nenhum setor cadastrado.' : 'Cadastre uma unidade primeiro.'}
+                                            {units && units.length > 0 ? 'Nenhum setor encontrado.' : 'Cadastre uma unidade primeiro.'}
                                         </TableCell>
                                     </TableRow>
                                 )}

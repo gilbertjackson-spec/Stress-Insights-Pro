@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +31,7 @@ import {
 import { deleteUnit } from '@/lib/unit-service';
 import { useToast } from '@/hooks/use-toast';
 import { EditUnitForm } from './edit-unit-form';
+import { Input } from '@/components/ui/input';
 
 
 export default function UnitsManagement({ companyId }: { companyId: string }) {
@@ -40,6 +41,7 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
+    const [filter, setFilter] = useState('');
 
     const unitsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -47,6 +49,18 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
     }, [firestore, companyId]);
 
     const { data: units, isLoading, refetch } = useCollection<Unit>(unitsQuery);
+
+    const sortedUnits = useMemo(() => {
+        if (!units) return [];
+        return [...units].sort((a, b) => a.name.localeCompare(b.name));
+    }, [units]);
+
+    const filteredUnits = useMemo(() => {
+        return sortedUnits.filter(unit => 
+            unit.name.toLowerCase().includes(filter.toLowerCase())
+        );
+    }, [sortedUnits, filter]);
+
 
     const handleFormFinished = () => {
         setIsAddDialogOpen(false);
@@ -116,6 +130,12 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
                     </Dialog>
                 </CardHeader>
                 <CardContent>
+                    <Input
+                        placeholder="Filtrar unidades..."
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        className="mb-4"
+                    />
                     <div className="border rounded-lg max-h-64 overflow-y-auto">
                         <Table>
                             <TableHeader>
@@ -129,8 +149,8 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
                                     Array.from({ length: 3 }).map((_, i) => (
                                         <TableRow key={i}><TableCell colSpan={2}><Skeleton className="h-5 w-full" /></TableCell></TableRow>
                                     ))
-                                ) : units && units.length > 0 ? (
-                                    units.map((unit) => (
+                                ) : filteredUnits && filteredUnits.length > 0 ? (
+                                    filteredUnits.map((unit) => (
                                         <TableRow key={unit.id}>
                                             <TableCell>{unit.name}</TableCell>
                                             <TableCell className="text-right">
@@ -157,7 +177,7 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={2} className="h-24 text-center">Nenhuma unidade cadastrada.</TableCell>
+                                        <TableCell colSpan={2} className="h-24 text-center">Nenhuma unidade encontrada.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
