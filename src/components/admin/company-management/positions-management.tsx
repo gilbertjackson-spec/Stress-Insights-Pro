@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { deletePosition } from '@/lib/position-service';
 import { useToast } from '@/hooks/use-toast';
-import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function PositionsManagement({ companyId }: { companyId: string }) {
     const firestore = useFirestore();
@@ -38,7 +38,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
-    const [filter, setFilter] = useState('');
+    const [filter, setFilter] = useState('all');
 
     // Data hooks
     const unitsQuery = useMemoFirebase(() => {
@@ -157,15 +157,8 @@ export default function PositionsManagement({ companyId }: { companyId: string }
     }, [positions]);
 
     const filteredPositions = useMemo(() => {
-        return sortedPositions.filter(pos => {
-            const sector = sectors.find(s => s.id === pos.sectorId);
-            const unit = sector ? units?.find(u => u.id === sector.unitId) : undefined;
-            const searchTerm = filter.toLowerCase();
-
-            return pos.name.toLowerCase().includes(searchTerm) ||
-                   (sector && sector.name.toLowerCase().includes(searchTerm)) ||
-                   (unit && unit.name.toLowerCase().includes(searchTerm));
-        });
+        if (filter === 'all') return sortedPositions;
+        return sortedPositions.filter(pos => pos.id === filter);
     }, [sortedPositions, filter, sectors, units]);
 
     const positionsWithNames = filteredPositions.map(pos => {
@@ -205,12 +198,19 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                     </Dialog>
                 </CardHeader>
                 <CardContent>
-                    <Input
-                        placeholder="Filtrar cargos..."
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        className="mb-4"
-                    />
+                    <Select value={filter} onValueChange={setFilter} disabled={isLoading || !sortedPositions.length}>
+                        <SelectTrigger className="mb-4">
+                            <SelectValue placeholder="Filtrar cargos..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos os cargos</SelectItem>
+                            {sortedPositions.map(pos => (
+                                <SelectItem key={pos.id} value={pos.id}>
+                                    {pos.name} ({getSectorName(pos.sectorId)} / {getUnitName(pos.unitId)})
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <div className="border rounded-lg max-h-64 overflow-y-auto">
                         <Table>
                             <TableHeader>

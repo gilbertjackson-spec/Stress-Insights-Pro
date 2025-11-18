@@ -31,7 +31,7 @@ import {
 import { deleteUnit } from '@/lib/unit-service';
 import { useToast } from '@/hooks/use-toast';
 import { EditUnitForm } from './edit-unit-form';
-import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 export default function UnitsManagement({ companyId }: { companyId: string }) {
@@ -41,7 +41,7 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
-    const [filter, setFilter] = useState('');
+    const [filter, setFilter] = useState('all');
 
     const unitsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -56,9 +56,8 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
     }, [units]);
 
     const filteredUnits = useMemo(() => {
-        return sortedUnits.filter(unit => 
-            unit.name.toLowerCase().includes(filter.toLowerCase())
-        );
+        if (filter === 'all') return sortedUnits;
+        return sortedUnits.filter(unit => unit.id === filter);
     }, [sortedUnits, filter]);
 
 
@@ -130,12 +129,17 @@ export default function UnitsManagement({ companyId }: { companyId: string }) {
                     </Dialog>
                 </CardHeader>
                 <CardContent>
-                    <Input
-                        placeholder="Filtrar unidades..."
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        className="mb-4"
-                    />
+                    <Select value={filter} onValueChange={setFilter} disabled={isLoading || !sortedUnits.length}>
+                        <SelectTrigger className="mb-4">
+                            <SelectValue placeholder="Filtrar unidades..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todas as unidades</SelectItem>
+                            {sortedUnits.map(unit => (
+                                <SelectItem key={unit.id} value={unit.id}>{unit.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <div className="border rounded-lg max-h-64 overflow-y-auto">
                         <Table>
                             <TableHeader>

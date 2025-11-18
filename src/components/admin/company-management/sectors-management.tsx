@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { deleteSector } from '@/lib/sector-service';
 import { useToast } from '@/hooks/use-toast';
-import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function SectorsManagement({ companyId }: { companyId: string }) {
     const firestore = useFirestore();
@@ -38,7 +38,7 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedSector, setSelectedSector] = useState<Sector | null>(null);
-    const [filter, setFilter] = useState('');
+    const [filter, setFilter] = useState('all');
     
     const unitsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -121,11 +121,9 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
     }, [sectors]);
 
     const filteredSectors = useMemo(() => {
-        return sortedSectors.filter(sector => 
-            sector.name.toLowerCase().includes(filter.toLowerCase()) ||
-            getUnitName(sector.unitId).toLowerCase().includes(filter.toLowerCase())
-        );
-    }, [sortedSectors, filter, units]);
+        if (filter === 'all') return sortedSectors;
+        return sortedSectors.filter(sector => sector.id === filter);
+    }, [sortedSectors, filter]);
 
     const sectorsWithUnitNames = filteredSectors.map(sector => ({
         ...sector,
@@ -159,12 +157,17 @@ export default function SectorsManagement({ companyId }: { companyId: string }) 
                     </Dialog>
                 </CardHeader>
                 <CardContent>
-                    <Input
-                        placeholder="Filtrar setores..."
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        className="mb-4"
-                    />
+                    <Select value={filter} onValueChange={setFilter} disabled={isLoading || !sortedSectors.length}>
+                        <SelectTrigger className="mb-4">
+                            <SelectValue placeholder="Filtrar setores..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos os setores</SelectItem>
+                            {sortedSectors.map(sector => (
+                                <SelectItem key={sector.id} value={sector.id}>{sector.name} ({getUnitName(sector.unitId)})</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <div className="border rounded-lg max-h-64 overflow-y-auto">
                         <Table>
                             <TableHeader>
