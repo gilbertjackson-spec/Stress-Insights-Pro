@@ -64,7 +64,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
                     const sectorsRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
                     const sectorsSnap = await getDocs(sectorsRef);
                     sectorsSnap.forEach(doc => {
-                        allSectors.push({ ...doc.data(), id: doc.id } as Sector);
+                        allSectors.push({ ...doc.data(), id: doc.id, unitId: unit.id } as Sector);
                     });
                 }
                 setSectors(allSectors);
@@ -75,11 +75,11 @@ export default function PositionsManagement({ companyId }: { companyId: string }
             }
         };
         fetchSectors();
-    }, [firestore, companyId, units]);
+    }, [firestore, companyId, units, unitsLoading]);
 
     // Fetch positions when sectors are available
     const fetchPositions = async () => {
-        if (!firestore || !sectors) {
+        if (!firestore || !sectors || !units) {
             if(!sectorsLoading) setPositionsLoading(false);
             return;
         }
@@ -87,7 +87,7 @@ export default function PositionsManagement({ companyId }: { companyId: string }
         try {
             const allPositions: Position[] = [];
             for (const sector of sectors) {
-                const unitId = units?.find(u => u.id === sector.unitId)?.id;
+                const unitId = units.find(u => u.id === sector.unitId)?.id;
                 if (!unitId) continue;
                 const positionsRef = collection(firestore, 'companies', companyId, 'units', unitId, 'sectors', sector.id, 'positions');
                 const positionsSnap = await getDocs(positionsRef);
@@ -104,8 +104,12 @@ export default function PositionsManagement({ companyId }: { companyId: string }
     };
     
     useEffect(() => {
-        fetchPositions();
-    }, [firestore, companyId, sectors, units]);
+        // This check is important. It ensures that we only fetch positions
+        // once the sectors (and by extension, units) have finished loading.
+        if(!sectorsLoading) {
+            fetchPositions();
+        }
+    }, [firestore, companyId, sectors, units, sectorsLoading]);
 
     const handleFormFinished = () => {
         setIsAddDialogOpen(false);
