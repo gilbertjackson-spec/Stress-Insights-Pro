@@ -49,10 +49,9 @@ export default function SurveyDemographicsForm({ onSubmit, isLoading, units = []
       case 'unit':
         return units.map(u => ({ id: u.id, name: u.name }));
       case 'sector':
-        // Use a map to ensure unique options by name
-        return [...new Map(sectors.map(item => [item.name, item])).values()].map(s => ({ id: s.id, name: s.name }));
+        return sectors.map(s => ({ id: s.id, name: s.name }));
       case 'position':
-        return [...new Map(positions.map(item => [item.name, item])).values()].map(p => ({ id: p.id, name: p.name }));
+        return positions.map(p => ({ id: p.id, name: p.name }));
       default:
         const field = DEMO_FIELDS.find(f => f.name === fieldName);
         return field ? field.options : [];

@@ -53,15 +53,19 @@ export default function SurveyPage() {
             getDocs(collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors'))
         );
         const sectorsSnaps = await Promise.all(sectorsPromises);
-        const sectors = sectorsSnaps.flatMap((snap, index) => snap.docs.map(d => ({ ...d.data(), id: d.id, unitId: units[index].id } as Sector)));
+        const allSectors = sectorsSnaps.flatMap((snap, index) => snap.docs.map(d => ({ ...d.data(), id: d.id, unitId: units[index].id } as Sector)));
 
-        const positionsPromises = sectors.map(sector => 
+        const positionsPromises = allSectors.map(sector => 
             getDocs(collection(firestore, 'companies', companyId, 'units', sector.unitId, 'sectors', sector.id, 'positions'))
         );
         const positionsSnaps = await Promise.all(positionsPromises);
-        const positions = positionsSnaps.flatMap((snap, index) => snap.docs.map(d => ({ ...d.data(), id: d.id, sectorId: sectors[index].id, unitId: sectors[index].unitId } as Position)));
+        const allPositions = positionsSnaps.flatMap((snap, index) => snap.docs.map(d => ({ ...d.data(), id: d.id, sectorId: allSectors[index].id, unitId: allSectors[index].unitId } as Position)));
 
-        setOrgStructure({ units, sectors, positions });
+        // Create unique lists for the dropdowns
+        const uniqueSectors = [...new Map(allSectors.map(item => [item.name, item])).values()];
+        const uniquePositions = [...new Map(allPositions.map(item => [item.name, item])).values()];
+
+        setOrgStructure({ units, sectors: uniqueSectors, positions: uniquePositions });
 
       } catch (error) {
         console.error("Failed to fetch organizational structure:", error);
