@@ -16,7 +16,7 @@ export default function DashboardFilters({ options, filters, setFilters, disable
     };
     
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             {Object.entries(DEMOGRAPHIC_FILTERS).map(([key, label]) => (
                 <div key={key}>
                     <Select

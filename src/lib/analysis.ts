@@ -8,6 +8,7 @@ export interface Filters {
   sector?: string | 'all';
   position?: string | 'all';
   age_range?: string | 'all';
+  gender?: string | 'all';
   current_role_time?: string | 'all';
 }
 
@@ -215,6 +216,7 @@ export async function getDashboardData(firestore: Firestore, deploymentId: strin
     sectors: getDemoOptions('sector'),
     positions: getDemoOptions('position'),
     age_ranges: getDemoOptions('age_range'),
+    genders: getDemoOptions('gender'),
     current_role_times: getDemoOptions('current_role_time'),
   };
 

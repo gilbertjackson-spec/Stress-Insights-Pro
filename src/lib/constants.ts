@@ -20,6 +20,7 @@ export const DEMOGRAPHIC_FILTERS = {
   sector: 'Setor',
   position: 'Cargo',
   age_range: 'Faixa Etária',
+  gender: 'Gênero',
   current_role_time: 'Tempo no cargo',
 };
 
@@ -39,14 +40,16 @@ export const DEMO_OPTIONS = {
   positions: ['Cargo 01', 'Cargo 02', 'Cargo 03'],
   current_role_times: ['Menos de 1 ano', 'Entre 1 e 2 anos', 'Entre 2 e 5 anos', 'Mais de 5 anos'],
   age_ranges: ['18-24', '25-34', '35-44', '45-54', '55+'],
+  genders: ['Masculino', 'Feminino', 'Outro', 'Prefiro não dizer'],
   health_issues: ['Sim', 'Não', 'Prefiro não dizer'] as ('Sim' | 'Não' | 'Prefiro não dizer')[],
 };
 
 // Demographic form fields configuration
-export const DEMO_FIELDS: { name: 'unit' | 'sector' | 'position' | 'age_range' | 'current_role_time'; label: string; options: { id: string; name: string }[] }[] = [
+export const DEMO_FIELDS: { name: 'unit' | 'sector' | 'position' | 'age_range' | 'current_role_time' | 'gender'; label: string; options: { id: string; name: string }[] }[] = [
     { name: 'unit', label: 'Unidade', options: [] }, // Options populated from props
     { name: 'sector', label: 'Setor', options: [] }, // Options populated from props
     { name: 'position', label: 'Cargo', options: [] }, // Options populated from props
     { name: 'age_range', label: 'Faixa Etária', options: DEMO_OPTIONS.age_ranges.map(o => ({id: o, name: o})) },
     { name: 'current_role_time', label: 'Tempo no Cargo Atual', options: DEMO_OPTIONS.current_role_times.map(o => ({id: o, name: o})) },
+    { name: 'gender', label: 'Gênero', options: DEMO_OPTIONS.genders.map(o => ({id: o, name: o})) },
 ];

@@ -23,6 +23,7 @@ const initialFilters: Filters = {
     position: 'all',
     age_range: 'all',
     current_role_time: 'all',
+    gender: 'all',
 };
 
 interface MainDashboardProps {

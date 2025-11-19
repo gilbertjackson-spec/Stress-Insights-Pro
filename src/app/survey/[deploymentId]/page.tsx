@@ -46,23 +46,23 @@ export default function SurveyPage() {
       try {
         const companyId = deployment.companyId;
 
-        // Fetch all organizational structure data in parallel
-        const [unitsSnap, positionsSnap] = await Promise.all([
-          getDocs(collection(firestore, 'companies', companyId, 'units')),
-          getDocs(collection(firestore, 'companies', companyId, 'positions'))
-        ]);
-        
+        const unitsSnap = await getDocs(collection(firestore, 'companies', companyId, 'units'));
         const units = unitsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Unit));
-        const positions = positionsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Position));
 
-        // Fetch Sectors from all units in parallel
         const sectorsPromises = units.map(unit => 
             getDocs(collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors'))
         );
         const sectorsSnaps = await Promise.all(sectorsPromises);
-        const sectors = sectorsSnaps.flatMap(snap => snap.docs.map(d => ({ ...d.data(), id: d.id } as Sector)));
+        const sectors = sectorsSnaps.flatMap((snap, index) => snap.docs.map(d => ({ ...d.data(), id: d.id, unitId: units[index].id } as Sector)));
+
+        const positionsPromises = sectors.map(sector => 
+            getDocs(collection(firestore, 'companies', companyId, 'units', sector.unitId, 'sectors', sector.id, 'positions'))
+        );
+        const positionsSnaps = await Promise.all(positionsPromises);
+        const positions = positionsSnaps.flatMap((snap, index) => snap.docs.map(d => ({ ...d.data(), id: d.id, sectorId: sectors[index].id, unitId: sectors[index].unitId } as Position)));
 
         setOrgStructure({ units, sectors, positions });
+
       } catch (error) {
         console.error("Failed to fetch organizational structure:", error);
       } finally {

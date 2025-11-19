@@ -34,6 +34,7 @@ export interface Demographics {
   position?: string;
   current_role_time?: string;
   age_range?: string;
+  gender?: string;
   health_issue?: 'Sim' | 'Não' | 'Prefiro não dizer';
 }
 
@@ -138,6 +139,7 @@ export interface DashboardData {
     sectors: string[];
     positions: string[];
     age_ranges: string[];
+    genders: string[];
     current_role_times: string[];
   }
 }

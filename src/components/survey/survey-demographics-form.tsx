@@ -22,9 +22,10 @@ import type { Unit, Sector, Position } from '@/lib/types';
 const formSchema = z.object({
     unit: z.string().min(1, 'Selecione a unidade.'),
     sector: z.string().min(1, 'Selecione o setor.'),
-    position: z.string().min(1, 'Selecione o cargo.'),
-    age_range: z.string().min(1, 'Selecione a faixa etária.'),
-    current_role_time: z.string().min(1, 'Selecione o tempo no cargo atual.'),
+    position: z.string().optional(),
+    age_range: z.string().optional(),
+    current_role_time: z.string().optional(),
+    gender: z.string().optional(),
 });
 
 type DemographicsFormValues = z.infer<typeof formSchema>;
