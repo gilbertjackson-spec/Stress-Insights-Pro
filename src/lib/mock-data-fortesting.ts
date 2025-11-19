@@ -11,7 +11,7 @@ const questionsData: { code: string; text: string }[] = [
   { code: 'Q-03', text: 'Diferentes grupos no trabalho exigem de mim coisas que são difíceis de combinar.' },
   { code: 'Q-04', text: 'Entendo como meu trabalho contribui para os objetivos da organização.' },
   { code: 'Q-05', text: 'Recebo o respeito que mereço dos meus colegas no trabalho.' },
-  { code: 'Q-06', text: 'Tenho prazos inatingíveis.' },
+  { code: 'Q-06', text: 'Tenho prazos muito difíceis de alcançar.' },
   { code: 'Q-07', text: 'Posso contar com o apoio dos meus colegas quando preciso.' },
   { code: 'Q-08', text: 'Meu gestor direto me incentiva a desenvolver novas habilidades.' },
   { code: 'Q-09', text: 'Tenho que trabalhar em um ritmo muito intenso.' },
