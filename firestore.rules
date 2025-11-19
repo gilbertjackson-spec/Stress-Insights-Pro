@@ -2,17 +2,20 @@
  * @fileoverview Firestore Security Rules for the stress survey system.
  *
  * Core Philosophy:
- * This ruleset is simplified for a controlled environment. It allows public, anonymous
- * access for survey submissions while maintaining basic signed-in protection for the
- * administrative sections.
+ * This ruleset is designed for a public survey system with a protected admin area.
+ * It allows public, anonymous access for viewing and submitting surveys, while
+ * requiring authentication for administrative tasks.
  *
  * Key Security Decisions:
- * - Survey responses (respondents and answers) can be CREATED by ANYONE with the link (public access).
- *   This removes the need for respondents to be signed in.
- * - Reading, updating, or deleting survey responses is disallowed to protect data integrity.
- * - All administrative data (companies, deployments, templates) requires a user to be
- *   signed-in (anonymously or otherwise) to read or write. This is a basic safeguard
- *   for the admin panel.
+ * - Survey data (templates, deployments, company structure) is PUBLICLY READABLE. This is
+ *   necessary for the survey page to function for anonymous users without requiring them
+ *   to sign in. Anyone with a link can load the survey questions and demographic options.
+ * - Survey responses (respondents and answers) can be CREATED by ANYONE with the link.
+ *   This is the core of the public survey functionality.
+ * - MODIFICATION and DELETION of submitted data (answers, respondents) is STRICTLY FORBIDDEN
+ *   to ensure data integrity. Only reading of aggregate reports is allowed for admins.
+ * - WRITING administrative data (companies, survey templates, deployments) requires
+ *   a user to be signed-in (anonymously or otherwise) to protect the admin panel.
  * - The default security posture is to deny all access unless explicitly allowed.
  */
 rules_version = '2';
@@ -20,72 +23,81 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows any signed-in user to manage company data.
-     * This is a simplified rule for initial development.
+     * @description Publicly readable to allow survey page to fetch company details.
+     * Write access is restricted to signed-in users (admins).
      */
     match /companies/{companyId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     /**
-     * @description Allows any signed-in user to manage units within a company.
-     * This is a simplified rule for initial development.
+     * @description Publicly readable for survey demographic dropdowns.
+     * Write access is restricted to signed-in users (admins).
      */
     match /companies/{companyId}/units/{unitId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     /**
-     * @description Allows any signed-in user to manage sectors within a company.
-     * This is a simplified rule for initial development.
+     * @description Publicly readable for survey demographic dropdowns.
+     * Write access is restricted to signed-in users (admins).
      */
     match /companies/{companyId}/units/{unitId}/sectors/{sectorId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn();
     }
     
     /**
-     * @description Allows any signed-in user to manage positions within a sector.
-     * This is a simplified rule for initial development.
+     * @description Publicly readable for survey demographic dropdowns.
+     * Write access is restricted to signed-in users (admins).
      */
     match /companies/{companyId}/units/{unitId}/sectors/{sectorId}/positions/{positionId} {
-        allow read, write: if isSignedIn();
+        allow read: if true;
+        allow write: if isSignedIn();
     }
 
     /**
-     * @description Allows any signed-in user to manage survey templates.
-     * This is a simplified rule for initial development.
+     * @description Publicly readable so the survey page can load the questions.
+     * Write access is restricted to signed-in users (admins).
      */
     match /survey_templates/{templateId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     /**
-     * @description Allows any signed-in user to manage domains within survey templates.
-     * This is a simplified rule for initial development.
+     * @description Publicly readable so the survey page can load the questions.
+     * Write access is restricted to signed-in users (admins).
      */
     match /survey_templates/{templateId}/domains/{domainId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     /**
-     * @description Allows any signed-in user to manage questions within domains.
-     * This is a simplified rule for initial development.
+     * @description Publicly readable so the survey page can load the questions.
+     * Write access is restricted to signed-in users (admins).
      */
     match /survey_templates/{templateId}/domains/{domainId}/questions/{questionId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     /**
-     * @description Allows read/write on individual documents for any signed-in user.
-     * This also implicitly allows querying the collection.
+     * @description Publicly readable to allow survey page to fetch deployment details.
+     * Write access is restricted to signed-in users (admins).
      */
     match /survey_deployments/{deploymentId} {
-      allow read, write: if isSignedIn();
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     /**
      * @description Allows ANYONE to create a survey response. This makes the survey link public.
      * Reading, updating, and deleting are disallowed to protect submitted data.
+     * Admin reading of individual responses is also disabled in favor of aggregate reports.
      */
     match /survey_deployments/{deploymentId}/respondents/{respondentId} {
       allow create: if true;
@@ -108,5 +120,3 @@ service cloud.firestore {
     return request.auth != null;
   }
 }
-
-    
