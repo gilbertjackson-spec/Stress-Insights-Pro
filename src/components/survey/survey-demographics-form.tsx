@@ -38,7 +38,7 @@ interface SurveyDemographicsFormProps {
     positions: Position[];
 }
 
-export default function SurveyDemographicsForm({ onSubmit, isLoading, units, sectors, positions }: SurveyDemographicsFormProps) {
+export default function SurveyDemographicsForm({ onSubmit, isLoading, units = [], sectors = [], positions = [] }: SurveyDemographicsFormProps) {
   
   const form = useForm<DemographicsFormValues>({
     resolver: zodResolver(formSchema),
@@ -80,7 +80,7 @@ export default function SurveyDemographicsForm({ onSubmit, isLoading, units, sec
                              <FormField
                                 key={fieldInfo.name}
                                 control={form.control}
-                                name={fieldInfo.name}
+                                name={fieldInfo.name as keyof DemographicsFormValues}
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormLabel>{fieldInfo.label}</FormLabel>
