@@ -32,32 +32,57 @@ type DemographicsFormValues = z.infer<typeof formSchema>;
 
 interface SurveyDemographicsFormProps {
     onSubmit: (data: DemographicsFormValues) => void;
-    isLoading: boolean;
+    isLoadingUnits: boolean;
+    isLoadingSectors: boolean;
+    isLoadingPositions: boolean;
     units: Unit[];
     sectors: Sector[];
     positions: Position[];
+    onUnitChange: (unitId: string) => void;
+    onSectorChange: (sectorId: string) => void;
+    selectedUnit: string;
 }
 
-export default function SurveyDemographicsForm({ onSubmit, isLoading, units = [], sectors = [], positions = [] }: SurveyDemographicsFormProps) {
+export default function SurveyDemographicsForm({ 
+    onSubmit, 
+    isLoadingUnits,
+    isLoadingSectors,
+    isLoadingPositions,
+    units = [], 
+    sectors = [], 
+    positions = [],
+    onUnitChange,
+    onSectorChange,
+    selectedUnit,
+}: SurveyDemographicsFormProps) {
   
   const form = useForm<DemographicsFormValues>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+        unit: '',
+        sector: '',
+        position: '',
+        age_range: '',
+        current_role_time: '',
+        gender: '',
+    },
   });
 
-  const getOptionsForField = (fieldName: string) => {
-    switch (fieldName) {
-      case 'unit':
-        return units.map(u => ({ id: u.id, name: u.name }));
-      case 'sector':
-        return sectors.map(s => ({ id: s.id, name: s.name }));
-      case 'position':
-        return positions.map(p => ({ id: p.id, name: p.name }));
-      default:
-        const field = DEMO_FIELDS.find(f => f.name === fieldName);
-        return field ? field.options : [];
-    }
-  };
+  const handleUnitChange = (value: string) => {
+    onUnitChange(value);
+    form.setValue('unit', value);
+    form.setValue('sector', '');
+    form.setValue('position', '');
+  }
 
+  const handleSectorChange = (value: string) => {
+    onSectorChange(value);
+    form.setValue('sector', value);
+    form.setValue('position', '');
+  }
+
+  const otherDemoFields = DEMO_FIELDS.filter(f => !['unit', 'sector', 'position'].includes(f.name));
+  const isLoading = isLoadingUnits;
 
   return (
     <>
@@ -75,7 +100,74 @@ export default function SurveyDemographicsForm({ onSubmit, isLoading, units = []
                 <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {DEMO_FIELDS.map(fieldInfo => (
+                        <FormField
+                            control={form.control}
+                            name="unit"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Unidade</FormLabel>
+                                    <Select onValueChange={handleUnitChange} value={field.value} disabled={isLoadingUnits}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={isLoadingUnits ? "Carregando..." : "Selecione a unidade..."} />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                        {units.map(option => (
+                                            <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>
+                                        ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="sector"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Setor</FormLabel>
+                                    <Select onValueChange={handleSectorChange} value={field.value} disabled={!selectedUnit || isLoadingSectors}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={isLoadingSectors ? "Carregando..." : "Selecione o setor..."} />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                        {sectors.map(option => (
+                                            <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>
+                                        ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="position"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Cargo</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value || ''} disabled={!form.getValues('sector') || isLoadingPositions}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={isLoadingPositions ? "Carregando..." : "Selecione o cargo (opcional)..."} />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                        {positions.map(option => (
+                                            <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>
+                                        ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {otherDemoFields.map(fieldInfo => (
                              <FormField
                                 key={fieldInfo.name}
                                 control={form.control}
@@ -83,14 +175,14 @@ export default function SurveyDemographicsForm({ onSubmit, isLoading, units = []
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormLabel>{fieldInfo.label}</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value || ''}>
                                         <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder={`Selecione...`} />
                                         </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                        {getOptionsForField(fieldInfo.name).map(option => (
+                                        {fieldInfo.options.map(option => (
                                             <SelectItem key={option.id} value={option.name}>{option.name}</SelectItem>
                                         ))}
                                         </SelectContent>

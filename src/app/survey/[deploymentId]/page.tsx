@@ -15,12 +15,6 @@ export const dynamic = 'force-dynamic';
 
 type SurveyStep = 'welcome' | 'demographics' | 'questionnaire' | 'completed';
 
-interface OrgStructure {
-  units: Unit[];
-  sectors: Sector[];
-  positions: Position[];
-}
-
 export default function SurveyPage() {
   const params = useParams();
   const deploymentId = params.deploymentId as string;
@@ -28,8 +22,19 @@ export default function SurveyPage() {
 
   const [step, setStep] = useState<SurveyStep>('welcome');
   const [demographics, setDemographics] = useState<Partial<Demographics>>({});
-  const [orgStructure, setOrgStructure] = useState<OrgStructure | null>(null);
-  const [isLoadingOrg, setIsLoadingOrg] = useState(true);
+  
+  // State for org structure and selections
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [sectors, setSectors] = useState<Sector[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]);
+  
+  const [isLoadingUnits, setIsLoadingUnits] = useState(true);
+  const [isLoadingSectors, setIsLoadingSectors] = useState(false);
+  const [isLoadingPositions, setIsLoadingPositions] = useState(false);
+  
+  const [selectedUnit, setSelectedUnit] = useState<string>('');
+  const [selectedSector, setSelectedSector] = useState<string>('');
+
 
   const deploymentRef = useMemoFirebase(() => {
     if (!firestore || !deploymentId) return null;
@@ -38,52 +43,90 @@ export default function SurveyPage() {
 
   const { data: deployment, isLoading: isLoadingDeployment } = useDoc<SurveyDeployment>(deploymentRef);
 
+  // Fetch Units
   useEffect(() => {
     if (!deployment || !firestore) return;
-
-    const fetchOrgStructure = async () => {
-      setIsLoadingOrg(true);
+    const fetchUnits = async () => {
+      setIsLoadingUnits(true);
       try {
         const companyId = deployment.companyId;
-
         const unitsSnap = await getDocs(collection(firestore, 'companies', companyId, 'units'));
-        const units = unitsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Unit));
-
-        const sectorsPromises = units.map(unit => 
-            getDocs(collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors'))
-        );
-        const sectorsSnaps = await Promise.all(sectorsPromises);
-        const allSectors = sectorsSnaps.flatMap((snap, index) => snap.docs.map(d => ({ ...d.data(), id: d.id, unitId: units[index].id } as Sector)));
-
-        const positionsPromises = allSectors.map(sector => 
-            getDocs(collection(firestore, 'companies', companyId, 'units', sector.unitId, 'sectors', sector.id, 'positions'))
-        );
-        const positionsSnaps = await Promise.all(positionsPromises);
-        const allPositions = positionsSnaps.flatMap((snap, index) => snap.docs.map(d => ({ ...d.data(), id: d.id, sectorId: allSectors[index].id, unitId: allSectors[index].unitId } as Position)));
-
-        // Create unique lists for the dropdowns
-        const uniqueSectors = [...new Map(allSectors.map(item => [item.name, item])).values()];
-        const uniquePositions = [...new Map(allPositions.map(item => [item.name, item])).values()];
-
-        setOrgStructure({ units, sectors: uniqueSectors, positions: uniquePositions });
-
+        const fetchedUnits = unitsSnap.docs.map(d => ({ ...d.data(), id: d.id } as Unit));
+        setUnits(fetchedUnits);
       } catch (error) {
-        console.error("Failed to fetch organizational structure:", error);
+        console.error("Failed to fetch units:", error);
       } finally {
-        setIsLoadingOrg(false);
+        setIsLoadingUnits(false);
       }
     };
-
-    fetchOrgStructure();
+    fetchUnits();
   }, [deployment, firestore]);
+
+  // Fetch Sectors when unit changes
+  useEffect(() => {
+    if (!selectedUnit || !deployment || !firestore) {
+        setSectors([]);
+        setSelectedSector('');
+        return;
+    };
+    const fetchSectors = async () => {
+        setIsLoadingSectors(true);
+        try {
+            const companyId = deployment.companyId;
+            const sectorsSnap = await getDocs(collection(firestore, 'companies', companyId, 'units', selectedUnit, 'sectors'));
+            const fetchedSectors = sectorsSnap.docs.map(d => ({ ...d.data(), id: d.id, unitId: selectedUnit } as Sector));
+            setSectors(fetchedSectors);
+        } catch (error) {
+            console.error("Failed to fetch sectors:", error);
+            setSectors([]);
+        } finally {
+            setIsLoadingSectors(false);
+        }
+    };
+    fetchSectors();
+  }, [selectedUnit, deployment, firestore]);
+
+  // Fetch Positions when sector changes
+  useEffect(() => {
+    if (!selectedSector || !selectedUnit || !deployment || !firestore) {
+        setPositions([]);
+        return;
+    }
+    const fetchPositions = async () => {
+        setIsLoadingPositions(true);
+        try {
+            const companyId = deployment.companyId;
+            const positionsSnap = await getDocs(collection(firestore, 'companies', companyId, 'units', selectedUnit, 'sectors', selectedSector, 'positions'));
+            const fetchedPositions = positionsSnap.docs.map(d => ({ ...d.data(), id: d.id, sectorId: selectedSector, unitId: selectedUnit } as Position));
+            setPositions(fetchedPositions);
+        } catch (error) {
+            console.error("Failed to fetch positions:", error);
+            setPositions([]);
+        } finally {
+            setIsLoadingPositions(false);
+        }
+    };
+    fetchPositions();
+  }, [selectedSector, selectedUnit, deployment, firestore]);
 
 
   const handleStart = () => {
     setStep('demographics');
   };
 
-  const handleDemographicsSubmit = (data: Partial<Demographics>) => {
-    setDemographics(data);
+  const handleDemographicsSubmit = (data: { unit: string; sector: string; position?: string; age_range?: string; current_role_time?: string; gender?: string; }) => {
+    const unitName = units.find(u => u.id === data.unit)?.name;
+    const sectorName = sectors.find(s => s.id === data.sector)?.name;
+    const positionName = data.position ? positions.find(p => p.id === data.position)?.name : undefined;
+    
+    setDemographics({
+        unit: unitName,
+        sector: sectorName,
+        position: positionName,
+        age_range: data.age_range,
+        current_role_time: data.current_role_time,
+        gender: data.gender,
+    });
     setStep('questionnaire');
   };
 
@@ -97,10 +140,15 @@ export default function SurveyPage() {
         return (
           <SurveyDemographicsForm 
             onSubmit={handleDemographicsSubmit} 
-            isLoading={isLoadingOrg}
-            units={orgStructure?.units || []}
-            sectors={orgStructure?.sectors || []}
-            positions={orgStructure?.positions || []}
+            isLoadingUnits={isLoadingUnits}
+            isLoadingSectors={isLoadingSectors}
+            isLoadingPositions={isLoadingPositions}
+            units={units}
+            sectors={sectors}
+            positions={positions}
+            onUnitChange={setSelectedUnit}
+            onSectorChange={setSelectedSector}
+            selectedUnit={selectedUnit}
           />
         );
       case 'questionnaire':
