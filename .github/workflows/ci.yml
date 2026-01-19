@@ -30,6 +30,17 @@ jobs:
       - name: Run type check
         run: npm run typecheck
       
+      - name: Run tests
+        run: npm run test:coverage
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+      
       - name: Run build
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
