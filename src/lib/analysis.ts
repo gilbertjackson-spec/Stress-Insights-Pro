@@ -2,7 +2,7 @@
 
 import type { Answer, DashboardData, Demographics, Domain, DomainAnalysis, Question, QuestionAnalysis, Respondent, SurveyDeployment, SurveyStatus, SurveyTemplate } from './types';
 import { getDocs, collection, doc, getDoc, Firestore } from 'firebase/firestore';
-import { LIKERT_SCALE } from './constants';
+import { LIKERT_SCALE, NEGATIVE_QUESTION_CODES } from './constants';
 
 export interface Filters {
   unit?: string | 'all';
@@ -112,8 +112,9 @@ function analyzeQuestion(question: Question, respondents: Respondent[]): { avera
     const rawResponseIndex = LIKERT_SCALE.indexOf(answer.rawResponse);
     const baseScore = rawResponseIndex !== -1 ? rawResponseIndex + 1 : 0;
     
-    // Always recalculate score based on the question's current `isInvertedScore` flag
-    const calculatedScore = question.isInvertedScore ? 6 - baseScore : baseScore;
+    // Always recalculate score based on the definitive list of negative questions.
+    const isInverted = NEGATIVE_QUESTION_CODES.includes(question.questionCode);
+    const calculatedScore = isInverted ? 6 - baseScore : baseScore;
     
     let sentiment: 'Favorável' | 'Neutro' | 'Desfavorável';
     if (calculatedScore <= 2) sentiment = 'Desfavorável';
