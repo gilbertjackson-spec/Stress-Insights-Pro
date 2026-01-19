@@ -46,7 +46,6 @@ export default function PositionsManagement({ companyId, selectedUnit, selectedS
     const [positionToDelete, setPositionToDelete] = useState<Position | null>(null);
     const [selectedPositionFilter, setSelectedPositionFilter] = useState('all');
 
-    // Data hooks
     const unitsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         return collection(firestore, 'companies', companyId, 'units');
@@ -54,56 +53,98 @@ export default function PositionsManagement({ companyId, selectedUnit, selectedS
     const { data: units, isLoading: unitsLoading } = useCollection<Unit>(unitsQuery);
 
     const [allSectors, setAllSectors] = useState<Sector[]>([]);
-    const [sectorsLoading, setSectorsLoading] = useState(true);
-    const [allPositions, setAllPositions] = useState<Position[]>([]);
-    const [positionsLoading, setPositionsLoading] = useState(true);
+    const [sectorsForLookupLoading, setSectorsForLookupLoading] = useState(true);
 
-    const fetchSectorsAndPositions = async () => {
-        if (!firestore || !units) {
-            if (!unitsLoading) {
-                setSectorsLoading(false);
-                setPositionsLoading(false);
+    useEffect(() => {
+        const fetchAllSectorsForLookup = async () => {
+            if (!firestore || !units) {
+                if (!unitsLoading) setSectorsForLookupLoading(false);
+                return;
             }
-            return;
-        }
-        setSectorsLoading(true);
-        setPositionsLoading(true);
-        try {
-            const fetchedSectors: Sector[] = [];
-            const fetchedPositions: Position[] = [];
-            for (const unit of units) {
-                const sectorsRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
-                const sectorsSnap = await getDocs(sectorsRef);
-                for (const sectorDoc of sectorsSnap.docs) {
-                    const sectorData = { ...sectorDoc.data(), id: sectorDoc.id, unitId: unit.id } as Sector
-                    fetchedSectors.push(sectorData);
-                    
-                    const positionsRef = collection(sectorDoc.ref, 'positions');
-                    const positionsSnap = await getDocs(positionsRef);
-                    positionsSnap.forEach(posDoc => {
-                        fetchedPositions.push({ ...posDoc.data(), id: posDoc.id, sectorId: sectorDoc.id, unitId: unit.id } as Position);
+            setSectorsForLookupLoading(true);
+            try {
+                const fetchedSectors: Sector[] = [];
+                for (const unit of units) {
+                    const sectorsRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
+                    const sectorsSnap = await getDocs(sectorsRef);
+                    sectorsSnap.forEach(sectorDoc => {
+                        fetchedSectors.push({ ...sectorDoc.data(), id: sectorDoc.id, unitId: unit.id } as Sector);
                     });
                 }
+                setAllSectors(fetchedSectors);
+            } catch (error) {
+                console.error("Error fetching sectors for lookup:", error);
+            } finally {
+                setSectorsForLookupLoading(false);
             }
-            setAllSectors(fetchedSectors);
-            setAllPositions(fetchedPositions);
+        };
+        fetchAllSectorsForLookup();
+    }, [firestore, companyId, units, unitsLoading]);
+
+    const [positions, setPositions] = useState<Position[]>([]);
+    const [positionsLoading, setPositionsLoading] = useState(true);
+
+    const refetchPositions = async () => {
+        if (!firestore || sectorsForLookupLoading) {
+            return;
+        }
+
+        const fetchPositionsForSector = async (unitId: string, sectorId: string) => {
+            if (!firestore) return [];
+            const positionsRef = collection(firestore, 'companies', companyId, 'units', unitId, 'sectors', sectorId, 'positions');
+            const positionsSnap = await getDocs(positionsRef);
+            return positionsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id, unitId, sectorId } as Position));
+        };
+
+        const fetchPositionsForUnit = async (unitId: string) => {
+            if (!firestore) return [];
+            const unitSectors = allSectors.filter(s => s.unitId === unitId);
+            let unitPositions: Position[] = [];
+            for (const sector of unitSectors) {
+                const sectorPositions = await fetchPositionsForSector(unitId, sector.id);
+                unitPositions.push(...sectorPositions);
+            }
+            return unitPositions;
+        };
+
+        const fetchAllCompanyPositions = async () => {
+            if (!firestore || !units) return [];
+            let allFetchedPositions: Position[] = [];
+            for (const unit of units) {
+                const unitPositions = await fetchPositionsForUnit(unit.id);
+                allFetchedPositions.push(...unitPositions);
+            }
+            return allFetchedPositions;
+        };
+
+        setPositionsLoading(true);
+        setPositions([]);
+
+        try {
+            let fetchedPositions: Position[] = [];
+            if (selectedSector !== 'all' && selectedUnit !== 'all') {
+                fetchedPositions = await fetchPositionsForSector(selectedUnit, selectedSector);
+            } else if (selectedUnit !== 'all') {
+                fetchedPositions = await fetchPositionsForUnit(selectedUnit);
+            } else {
+                fetchedPositions = await fetchAllCompanyPositions();
+            }
+            setPositions(fetchedPositions);
         } catch (error) {
-            console.error("Error fetching sectors/positions:", error);
+            console.error("Error fetching positions:", error);
         } finally {
-            setSectorsLoading(false);
             setPositionsLoading(false);
         }
     };
-    
+
     useEffect(() => {
-        if (units) {
-            fetchSectorsAndPositions();
-        }
-    }, [firestore, companyId, units]);
+        refetchPositions();
+    }, [firestore, companyId, selectedUnit, selectedSector, allSectors, sectorsForLookupLoading, unitsLoading]);
+
 
     const handleFormFinished = () => {
         setIsAddDialogOpen(false);
-        setTimeout(fetchSectorsAndPositions, 500); // refetch
+        setTimeout(refetchPositions, 500); 
     }
 
     const openDeleteDialog = (position: Position) => {
@@ -119,7 +160,7 @@ export default function PositionsManagement({ companyId, selectedUnit, selectedS
                 title: "Cargo Excluído",
                 description: `O cargo "${positionToDelete.name}" foi excluído com sucesso.`,
             });
-            setTimeout(fetchSectorsAndPositions, 500); // refetch
+            setTimeout(refetchPositions, 500); 
         } catch (error) {
              toast({
                 variant: "destructive",
@@ -132,21 +173,14 @@ export default function PositionsManagement({ companyId, selectedUnit, selectedS
         }
     }
 
-    const isLoading = unitsLoading || sectorsLoading || positionsLoading;
+    const isLoading = unitsLoading || sectorsForLookupLoading || positionsLoading;
 
     const getUnitName = (unitId: string) => units?.find(u => u.id === unitId)?.name || '...';
     const getSectorName = (sectorId: string) => allSectors?.find(s => s.id === sectorId)?.name || '...';
 
     const positionsForFilter = useMemo(() => {
-        let filtered = allPositions;
-        if (selectedUnit !== 'all') {
-            filtered = filtered.filter(pos => pos.unitId === selectedUnit);
-        }
-        if (selectedSector !== 'all') {
-            filtered = filtered.filter(pos => pos.sectorId === selectedSector);
-        }
-        return [...filtered].sort((a, b) => a.name.localeCompare(b.name));
-    }, [allPositions, selectedUnit, selectedSector]);
+        return [...positions].sort((a, b) => a.name.localeCompare(b.name));
+    }, [positions]);
     
     const displayedPositions = useMemo(() => {
         if (selectedPositionFilter === 'all') return positionsForFilter;

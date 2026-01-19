@@ -53,43 +53,70 @@ export default function SectorsManagement({ companyId, selectedUnit, selectedSec
 
     const { data: units, isLoading: unitsLoading } = useCollection<Unit>(unitsQuery);
 
-    const [allSectors, setAllSectors] = useState<Sector[]>([]);
+    const [sectors, setSectors] = useState<Sector[]>([]);
     const [sectorsLoading, setSectorsLoading] = useState(true);
 
-    const fetchSectors = async () => {
-        if (!firestore || !units) {
-            if(!unitsLoading) setSectorsLoading(false);
-            return;
-        };
-
-        setSectorsLoading(true);
-        try {
-            const fetchedSectors: Sector[] = [];
-            for (const unit of units) {
-                const sectorsCollectionRef = collection(firestore, 'companies', companyId, 'units', unit.id, 'sectors');
-                const sectorsSnapshot = await getDocs(sectorsCollectionRef);
-                sectorsSnapshot.forEach(doc => {
-                    fetchedSectors.push({ ...doc.data(), id: doc.id, unitId: unit.id } as Sector);
-                });
-            }
-            setAllSectors(fetchedSectors);
-        } catch (error) {
-            console.error("Error fetching sectors:", error);
-        } finally {
-            setSectorsLoading(false);
-        }
-    };
-
     useEffect(() => {
-        if(units) {
-            fetchSectors();
-        }
-    }, [firestore, companyId, units]);
+        const fetchSectorsForUnit = async (unitId: string) => {
+            if (!firestore) return [];
+            const sectorsCollectionRef = collection(firestore, 'companies', companyId, 'units', unitId, 'sectors');
+            const sectorsSnapshot = await getDocs(sectorsCollectionRef);
+            return sectorsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, unitId: unitId } as Sector));
+        };
+    
+        const fetchLogic = async () => {
+            if (!firestore || !units) {
+                if (!unitsLoading) setSectorsLoading(false);
+                return;
+            }
+            
+            setSectorsLoading(true);
+            setSectors([]);
+            if (selectedUnit !== 'all') {
+                onSectorChange('all');
+            }
+    
+            try {
+                let fetchedSectors: Sector[] = [];
+                if (selectedUnit === 'all') {
+                    for (const unit of units) {
+                        const unitSectors = await fetchSectorsForUnit(unit.id);
+                        fetchedSectors.push(...unitSectors);
+                    }
+                } else {
+                    fetchedSectors = await fetchSectorsForUnit(selectedUnit);
+                }
+                setSectors(fetchedSectors);
+            } catch (error) {
+                console.error("Error fetching sectors:", error);
+                setSectors([]);
+            } finally {
+                setSectorsLoading(false);
+            }
+        };
+    
+        fetchLogic();
+    }, [firestore, companyId, units, unitsLoading, selectedUnit]);
 
 
-    const handleFormFinished = () => {
+    const handleFormFinished = async () => {
         setIsAddDialogOpen(false);
-        setTimeout(fetchSectors, 500);
+        // Refetch logic
+        const fetchSectorsForUnit = async (unitId: string) => {
+            if (!firestore) return [];
+            const sectorsCollectionRef = collection(firestore, 'companies', companyId, 'units', unitId, 'sectors');
+            const sectorsSnapshot = await getDocs(sectorsCollectionRef);
+            return sectorsSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, unitId: unitId } as Sector));
+        };
+        if (selectedUnit === 'all' && units) {
+            let fetchedSectors: Sector[] = [];
+            for (const unit of units) {
+                fetchedSectors.push(...await fetchSectorsForUnit(unit.id));
+            }
+            setSectors(fetchedSectors);
+        } else {
+            setSectors(await fetchSectorsForUnit(selectedUnit));
+        }
     }
     
     const openDeleteDialog = (sector: Sector) => {
@@ -105,7 +132,7 @@ export default function SectorsManagement({ companyId, selectedUnit, selectedSec
                 title: "Setor Excluído",
                 description: `O setor "${sectorToDelete.name}" foi excluído com sucesso.`,
             });
-            setTimeout(fetchSectors, 500);
+            await handleFormFinished(); // Re-use refetch logic
         } catch (error) {
              toast({
                 variant: "destructive",
@@ -122,11 +149,8 @@ export default function SectorsManagement({ companyId, selectedUnit, selectedSec
     const getUnitName = (unitId: string) => units?.find(u => u.id === unitId)?.name || '...';
 
     const sortedSectorsForFilter = useMemo(() => {
-        const sectorsToList = selectedUnit === 'all' 
-            ? allSectors 
-            : allSectors.filter(sector => sector.unitId === selectedUnit);
-        return [...sectorsToList].sort((a, b) => a.name.localeCompare(b.name));
-    }, [allSectors, selectedUnit]);
+        return [...sectors].sort((a, b) => a.name.localeCompare(b.name));
+    }, [sectors]);
 
     const displayedSectors = useMemo(() => {
         if (selectedSector === 'all') return sortedSectorsForFilter;
