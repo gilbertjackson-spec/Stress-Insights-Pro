@@ -1,7 +1,7 @@
 export type Sentiment = 'Favorável' | 'Neutro' | 'Desfavorável';
 
 export interface Question {
-  id: string; 
+  id: string;
   domainId: string;
   questionText: string;
   questionCode: string;
@@ -72,27 +72,27 @@ export interface SurveyDeployment {
 }
 
 export interface Company {
-    id: string; // Firestore document ID
-    name: string;
+  id: string; // Firestore document ID
+  name: string;
 }
 
 export interface Unit {
-    id: string; // Firestore document ID
-    name: string;
-    companyId: string;
+  id: string; // Firestore document ID
+  name: string;
+  companyId: string;
 }
 
 export interface Sector {
-    id: string; // Firestore document ID
-    name: string;
-    unitId: string;
+  id: string; // Firestore document ID
+  name: string;
+  unitId: string;
 }
 
 export interface Position {
-    id: string;
-    name: string;
-    sectorId: string;
-    unitId: string;
+  id: string;
+  name: string;
+  sectorId: string;
+  unitId: string;
 }
 
 
@@ -135,6 +135,11 @@ export interface DashboardData {
   completion_rate: number;
   surveyStatus: SurveyStatus;
   domain_analysis: DomainAnalysis[];
+  overall_sentiment: {
+    favorable_perc: number;
+    neutral_perc: number;
+    unfavorable_perc: number;
+  };
   demographic_options: {
     units: string[];
     sectors: string[];
@@ -145,4 +150,3 @@ export interface DashboardData {
   }
 }
 
-    

@@ -15,26 +15,26 @@ export interface Filters {
 
 // Helper to fetch all respondents and their answers for a given deployment
 async function getRespondentsWithAnswers(firestore: Firestore, deploymentId: string): Promise<Respondent[]> {
-    const respondentsRef = collection(firestore, 'survey_deployments', deploymentId, 'respondents');
-    const respondentsSnap = await getDocs(respondentsRef);
+  const respondentsRef = collection(firestore, 'survey_deployments', deploymentId, 'respondents');
+  const respondentsSnap = await getDocs(respondentsRef);
 
-    const respondents: Respondent[] = [];
+  const respondents: Respondent[] = [];
 
-    for (const respondentDoc of respondentsSnap.docs) {
-        const respondentData = respondentDoc.data() as Omit<Respondent, 'id' | 'answers'>;
-        
-        const answersRef = collection(respondentDoc.ref, 'answers');
-        const answersSnap = await getDocs(answersRef);
-        const answers = answersSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Answer));
+  for (const respondentDoc of respondentsSnap.docs) {
+    const respondentData = respondentDoc.data() as Omit<Respondent, 'id' | 'answers'>;
 
-        respondents.push({
-            ...respondentData,
-            id: respondentDoc.id,
-            answers,
-        });
-    }
+    const answersRef = collection(respondentDoc.ref, 'answers');
+    const answersSnap = await getDocs(answersRef);
+    const answers = answersSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Answer));
 
-    return respondents;
+    respondents.push({
+      ...respondentData,
+      id: respondentDoc.id,
+      answers,
+    });
+  }
+
+  return respondents;
 }
 
 // Helper to fetch the full survey template (template -> domains -> questions)
@@ -48,7 +48,7 @@ async function getFullSurveyTemplate(firestore: Firestore, templateId: string): 
 
   const domainsRef = collection(templateRef, 'domains');
   const domainsSnap = await getDocs(domainsRef);
-  
+
   const domains: Domain[] = [];
   for (const domainDoc of domainsSnap.docs) {
     const data = domainDoc.data();
@@ -65,10 +65,10 @@ async function getFullSurveyTemplate(firestore: Firestore, templateId: string): 
       descriptionText: data.descriptionText,
       questions: [], // questions will be populated next
     };
-    
+
     const questionsRef = collection(domainDoc.ref, 'questions');
     const questionsSnap = await getDocs(questionsRef);
-    
+
     domainData.questions = questionsSnap.docs.map(qDoc => ({ ...qDoc.data(), id: qDoc.id } as Question));
     domains.push(domainData);
   }
@@ -83,8 +83,8 @@ function filterRespondents(respondents: Respondent[], filters: Filters): Respond
     return Object.entries(filters).every(([key, value]) => {
       if (!value || value === 'all') return true;
       // Handle cases where respondent.demographics might be undefined or a string
-      const demo = (typeof respondent.demographics === 'string') 
-        ? JSON.parse(respondent.demographics) 
+      const demo = (typeof respondent.demographics === 'string')
+        ? JSON.parse(respondent.demographics)
         : respondent.demographics;
 
       if (!demo) return false;
@@ -94,8 +94,8 @@ function filterRespondents(respondents: Respondent[], filters: Filters): Respond
 }
 
 function analyzeQuestion(question: Question, respondents: Respondent[]): { average_score: number; sentiment_distribution: any } {
-  const relevantAnswers = respondents.flatMap(r => 
-      (r.answers || []).filter(a => a.questionId === question.id)
+  const relevantAnswers = respondents.flatMap(r =>
+    (r.answers || []).filter(a => a.questionId === question.id)
   );
 
   if (relevantAnswers.length === 0) {
@@ -111,11 +111,11 @@ function analyzeQuestion(question: Question, respondents: Respondent[]): { avera
   const scoresAndSentiments = relevantAnswers.map(answer => {
     const rawResponseIndex = LIKERT_SCALE.indexOf(answer.rawResponse);
     const baseScore = rawResponseIndex !== -1 ? rawResponseIndex + 1 : 0;
-    
+
     // Always recalculate score based on the definitive list of negative questions.
     const isInverted = NEGATIVE_QUESTION_CODES.includes(question.questionCode);
     const calculatedScore = isInverted ? 6 - baseScore : baseScore;
-    
+
     let sentiment: 'Favorável' | 'Neutro' | 'Desfavorável';
     if (calculatedScore <= 2) sentiment = 'Desfavorável';
     else if (calculatedScore === 3) sentiment = 'Neutro';
@@ -159,11 +159,11 @@ function analyzeDomain(domain: Domain, respondents: Respondent[]): DomainAnalysi
   });
 
   const validQuestionAnalyses = questions_analysis.filter(qa => qa.average_score > 0);
-  
+
   const domain_score = validQuestionAnalyses.length > 0
     ? validQuestionAnalyses.reduce((sum, qa) => sum + qa.average_score, 0) / validQuestionAnalyses.length
     : 0;
-  
+
   let strong_point: QuestionAnalysis | null = null;
   let weak_point: QuestionAnalysis | null = null;
 
@@ -195,13 +195,13 @@ export async function getDashboardData(firestore: Firestore, deploymentId: strin
   const deploymentRef = doc(firestore, 'survey_deployments', deploymentId);
   const deploymentSnap = await getDoc(deploymentRef);
   if (!deploymentSnap.exists()) {
-      throw new Error("Pesquisa não encontrada.");
+    throw new Error("Pesquisa não encontrada.");
   }
   const deployment = deploymentSnap.data() as Omit<SurveyDeployment, 'id'>;
 
   // 2. Fetch all respondents and their answers for this deployment
   const allRespondents = await getRespondentsWithAnswers(firestore, deploymentId);
-  
+
   // 3. Get the full survey template dynamically from Firestore
   const template = await getFullSurveyTemplate(firestore, deployment.templateId);
 
@@ -214,17 +214,34 @@ export async function getDashboardData(firestore: Firestore, deploymentId: strin
   // 6. Calculate summary stats
   const total_respondents = filteredRespondents.length;
   const completion_rate = deployment.totalInvited > 0 ? (allRespondents.length / deployment.totalInvited) * 100 : 0;
-  
+
+  // 6a. Calculate overall sentiment
+  let totalFav = 0, totalNeu = 0, totalUnfav = 0, totalAns = 0;
+  domain_analysis.forEach(da => {
+    da.questions_analysis.forEach(qa => {
+      totalFav += qa.sentiment_distribution.favorable_count;
+      totalNeu += qa.sentiment_distribution.neutral_count;
+      totalUnfav += qa.sentiment_distribution.unfavorable_count;
+    });
+  });
+  totalAns = totalFav + totalNeu + totalUnfav;
+
+  const overall_sentiment = {
+    favorable_perc: totalAns > 0 ? (totalFav / totalAns) * 100 : 0,
+    neutral_perc: totalAns > 0 ? (totalNeu / totalAns) * 100 : 0,
+    unfavorable_perc: totalAns > 0 ? (totalUnfav / totalAns) * 100 : 0,
+  };
+
   // 7. Get available demographic options from all respondents (before filtering)
   const getDemoOptions = (key: keyof Demographics) => {
     const options = new Set<string>();
     allRespondents.forEach(r => {
-        const demo = (typeof r.demographics === 'string') 
-            ? JSON.parse(r.demographics) 
-            : r.demographics;
-        if (demo && demo[key]) {
-            options.add(demo[key]);
-        }
+      const demo = (typeof r.demographics === 'string')
+        ? JSON.parse(r.demographics)
+        : r.demographics;
+      if (demo && demo[key]) {
+        options.add(demo[key]);
+      }
     });
     return ['all', ...Array.from(options)];
   };
@@ -244,6 +261,7 @@ export async function getDashboardData(firestore: Firestore, deploymentId: strin
     completion_rate,
     surveyStatus: deployment.status as SurveyStatus,
     domain_analysis,
+    overall_sentiment,
     demographic_options
   };
 }

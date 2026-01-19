@@ -4,15 +4,23 @@ import OverviewCards from '../overview-cards';
 import type { DashboardData } from '@/lib/types';
 
 const mockDashboardData: DashboardData = {
+    deploymentName: 'Test Survey',
     total_respondents: 150,
     completion_rate: 75.5,
     surveyStatus: 'active',
     domain_analysis: [],
-    demographics: {
-        age: {},
-        gender: {},
-        sector: {},
-        position: {},
+    overall_sentiment: {
+        favorable_perc: 70,
+        neutral_perc: 20,
+        unfavorable_perc: 10,
+    },
+    demographic_options: {
+        units: ['all', 'Unit A'],
+        sectors: ['all', 'Sector B'],
+        positions: ['all', 'Position C'],
+        age_ranges: ['all', 'Range'],
+        genders: ['all', 'Gender'],
+        current_role_times: ['all', 'Time'],
     },
 };
 
@@ -54,11 +62,19 @@ describe('OverviewCards Component', () => {
         expect(statusElement).toHaveClass('capitalize');
     });
 
+    it('should display Sentiment summary card', () => {
+        render(<OverviewCards data={mockDashboardData} isLoading={false} />);
+
+        expect(screen.getByText('Sentimento Geral')).toBeInTheDocument();
+        expect(screen.getByText('70.0%')).toBeInTheDocument();
+    });
+
     it('should render card descriptions', () => {
         render(<OverviewCards data={mockDashboardData} isLoading={false} />);
 
         expect(screen.getByText('Número de participantes com o filtro atual.')).toBeInTheDocument();
         expect(screen.getByText('Baseado no total de convidados.')).toBeInTheDocument();
+        expect(screen.getByText('Percentual de respostas favoráveis.')).toBeInTheDocument();
         expect(screen.getByText('O estado atual da coleta de respostas.')).toBeInTheDocument();
     });
 
@@ -83,9 +99,9 @@ describe('OverviewCards Component', () => {
         expect(screen.getByText('active')).toBeInTheDocument();
 
         rerender(
-            <OverviewCards data={{ ...mockDashboardData, surveyStatus: 'completed' }} isLoading={false} />
+            <OverviewCards data={{ ...mockDashboardData, surveyStatus: 'closed' }} isLoading={false} />
         );
-        expect(screen.getByText('completed')).toBeInTheDocument();
+        expect(screen.getByText('closed')).toBeInTheDocument();
 
         rerender(
             <OverviewCards data={{ ...mockDashboardData, surveyStatus: 'draft' }} isLoading={false} />
@@ -100,6 +116,6 @@ describe('OverviewCards Component', () => {
 
         const grid = container.querySelector('.grid');
         expect(grid).toHaveClass('md:grid-cols-2');
-        expect(grid).toHaveClass('lg:grid-cols-3');
+        expect(grid).toHaveClass('lg:grid-cols-4');
     });
 });

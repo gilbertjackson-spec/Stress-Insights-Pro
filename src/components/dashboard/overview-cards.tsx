@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DashboardData, SurveyDeployment } from "@/lib/types";
-import { Users, Target, CheckCircle, PieChart } from "lucide-react";
+import { Users, Target, CheckCircle, PieChart, Heart } from "lucide-react";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
+import SentimentBarChart from "../charts/sentiment-bar-chart";
 
 interface OverviewCardsProps {
     data: DashboardData;
@@ -11,7 +12,7 @@ interface OverviewCardsProps {
 }
 
 export default function OverviewCards({ data, isLoading }: OverviewCardsProps) {
-    const { total_respondents, completion_rate, surveyStatus } = data;
+    const { total_respondents, completion_rate, surveyStatus, overall_sentiment } = data;
     const cards = [
         {
             title: "Total de Respondentes",
@@ -25,7 +26,13 @@ export default function OverviewCards({ data, isLoading }: OverviewCardsProps) {
             icon: PieChart,
             description: "Baseado no total de convidados.",
         },
-        // You can add more cards here, e.g., for average sentiment
+        {
+            title: "Sentimento Geral",
+            value: `${overall_sentiment.favorable_perc.toFixed(1)}%`,
+            icon: Heart,
+            description: "Percentual de respostas favoráveis.",
+            component: <div className="mt-2"><SentimentBarChart favorable={overall_sentiment.favorable_perc} neutral={overall_sentiment.neutral_perc} unfavorable={overall_sentiment.unfavorable_perc} /></div>
+        },
         {
             title: "Status da Pesquisa",
             value: surveyStatus,
@@ -36,7 +43,8 @@ export default function OverviewCards({ data, isLoading }: OverviewCardsProps) {
 
     if (isLoading) {
         return (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Skeleton className="h-28" />
                 <Skeleton className="h-28" />
                 <Skeleton className="h-28" />
                 <Skeleton className="h-28" />
@@ -45,7 +53,7 @@ export default function OverviewCards({ data, isLoading }: OverviewCardsProps) {
     }
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {cards.map((card) => (
                 <Card key={card.title}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -54,7 +62,8 @@ export default function OverviewCards({ data, isLoading }: OverviewCardsProps) {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold capitalize">{card.value}</div>
-                        {card.description && <p className="text-xs text-muted-foreground">{card.description}</p>}
+                        {"component" in card && card.component}
+                        {card.description && <p className="text-xs text-muted-foreground mt-1">{card.description}</p>}
                     </CardContent>
                 </Card>
             ))}

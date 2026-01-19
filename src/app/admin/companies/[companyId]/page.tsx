@@ -8,6 +8,7 @@ import { useParams } from 'next/navigation';
 import UnitsManagement from '@/components/admin/company-management/units-management';
 import SectorsManagement from '@/components/admin/company-management/sectors-management';
 import PositionsManagement from '@/components/admin/company-management/positions-management';
+import CompanyReportsList from '@/components/admin/company-reports-list';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from 'next/link';
 import { ChevronRight, Building, FileText, BarChart3 } from 'lucide-react';
@@ -29,7 +30,7 @@ export default function CompanyPage() {
   }, [firestore, companyId]);
 
   const { data: company, isLoading: isCompanyLoading } = useDoc(companyRef);
-  
+
   const isLoading = isCompanyLoading;
 
   const handleUnitChange = (unitId: string) => {
@@ -50,10 +51,10 @@ export default function CompanyPage() {
 
   if (!company) {
     return (
-        <div>
-            <h1 className="text-2xl font-bold">Empresa não encontrada</h1>
-            <p>A empresa que você está tentando acessar não existe.</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold">Empresa não encontrada</h1>
+        <p>A empresa que você está tentando acessar não existe.</p>
+      </div>
     );
   }
 
@@ -77,7 +78,7 @@ export default function CompanyPage() {
             <Building className="mr-2 h-4 w-4" />
             Estrutura Organizacional
           </TabsTrigger>
-          <TabsTrigger value="reports" disabled>
+          <TabsTrigger value="reports">
             <FileText className="mr-2 h-4 w-4" />
             Relatórios
           </TabsTrigger>
@@ -88,28 +89,26 @@ export default function CompanyPage() {
         </TabsContent>
         <TabsContent value="structure" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <UnitsManagement 
+            <UnitsManagement
               companyId={companyId}
               selectedUnit={selectedUnit}
               onUnitChange={handleUnitChange}
             />
-            <SectorsManagement 
-              companyId={companyId} 
+            <SectorsManagement
+              companyId={companyId}
               selectedUnit={selectedUnit}
               selectedSector={selectedSector}
               onSectorChange={setSelectedSector}
             />
-            <PositionsManagement 
-              companyId={companyId} 
+            <PositionsManagement
+              companyId={companyId}
               selectedUnit={selectedUnit}
               selectedSector={selectedSector}
             />
           </div>
         </TabsContent>
         <TabsContent value="reports" className="space-y-4">
-            <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg">
-                <p className="text-muted-foreground">A funcionalidade de relatórios estará disponível em breve.</p>
-            </div>
+          <CompanyReportsList companyId={companyId} />
         </TabsContent>
       </Tabs>
     </div>

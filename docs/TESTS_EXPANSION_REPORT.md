@@ -1,282 +1,84 @@
 # 🧪 Expansão de Testes - Relatório
 
 **Data:** 19/01/2026  
-**Fase:** Sprint 1 - Continuação  
+**Fase:** Sprint 2 - Componentes Complexos e Admin  
 **Status:** ✅ Concluído
 
 ---
 
 ## 📊 Resumo Executivo
 
-Expandimos significativamente a cobertura de testes do projeto, adicionando **56 novos testes** e alcançando **100% de cobertura** em todos os componentes e hooks testados.
+Expandimos significativamente a cobertura de testes do projeto, adicionando suporte para componentes complexos (Radix UI) e lógica de negócio da área administrativa. Alcançamos **94.44% de cobertura total** e **163 testes ativos**.
 
 ---
 
 ## 📈 Métricas de Progresso
 
-### Antes (Setup Inicial)
-- **Testes:** 16
-- **Arquivos de Teste:** 2
-- **Coverage Statements:** 77.41%
-- **Coverage Functions:** 88.88%
+### Antes (Fim da Sessão 1)
+- **Testes:** 72
+- **Arquivos de Teste:** 9
+- **Coverage Statements:** 88.52%
 
-### Depois (Expansão)
-- **Testes:** 72 (+350%)
-- **Arquivos de Teste:** 9 (+350%)
-- **Coverage Statements:** 88.52% (+11.11%)
-- **Coverage Functions:** 95% (+6.12%)
-
-### Melhoria
-| Métrica | Antes | Depois | Melhoria |
-|---------|-------|--------|----------|
-| Total de Testes | 16 | 72 | **+350%** |
-| Arquivos de Teste | 2 | 9 | **+350%** |
-| Coverage - Statements | 77.41% | 88.52% | **+11.11%** |
-| Coverage - Branches | 27.27% | 57.89% | **+30.62%** |
-| Coverage - Functions | 88.88% | 95% | **+6.12%** |
-| Coverage - Lines | 82.75% | 91.37% | **+8.62%** |
+### Depois (Fim da Sessão 2)
+- **Testes:** 163 (+126%)
+- **Arquivos de Teste:** 21 (+133%)
+- **Coverage Statements:** 94.44% (+6%)
+- **Coverage Functions:** 90.66%
 
 ---
 
-## ✅ Novos Testes Criados
+## ✅ Novos Testes Criados (Sessão 2)
 
-### 1. Hooks (6 testes)
-**Arquivo:** `src/hooks/__tests__/use-mobile.test.tsx`
+### 1. Componentes UI Complexos
+- ✅ **Dialog:** Abertura, fechamento, estado controlado e acessibilidade.
+- ✅ **Select:** Seleção de itens, placeholders e estados desabilitados.
+- ✅ **DropdownMenu:** Menus de ação, itens desabilitados e labels.
+- ✅ **Checkbox:** Estados checked/unchecked e integração com formulários.
+- ✅ **Table:** Estratégia de renderização de dados tabulares.
 
-- ✅ Desktop width (>= 768px)
-- ✅ Mobile width (< 768px)
-- ✅ Tablet width (767px)
-- ✅ Exactly 768px
-- ✅ Window resize handling
-- ✅ Event listener cleanup
+### 2. Módulo Administrativo (Business Logic)
+- ✅ **CompaniesTable:** Listagem de empresas, loading states e integração de menus.
+- ✅ **AddCompanyForm:** Validação Zod, submissão ao Firestore e feedback via Toast.
+- ✅ **EditCompanyForm:** Edição de dados existentes com persistência.
+- ✅ **StatusMenu:** Gerenciamento de status de pesquisas com updateDoc.
+- ✅ **AddSurveyForm:** Renderização inicial e estrutura de formulário complexo.
 
-**Cobertura:** 100% 🎯
-
----
-
-### 2. Componentes UI - Badge (8 testes)
-**Arquivo:** `src/components/ui/__tests__/badge.test.tsx`
-
-- ✅ Render com texto
-- ✅ Variant: default
-- ✅ Variant: secondary
-- ✅ Variant: destructive
-- ✅ Variant: outline
-- ✅ Custom className
-- ✅ Children elements
-- ✅ Base classes
-
-**Cobertura:** 100% 🎯
-
----
-
-### 3. Componentes UI - Input (12 testes)
-**Arquivo:** `src/components/ui/__tests__/input.test.tsx`
-
-- ✅ Render input element
-- ✅ Placeholder
-- ✅ Value
-- ✅ onChange event
-- ✅ Disabled state
-- ✅ Different types (email, password)
-- ✅ Custom className
-- ✅ Required attribute
-- ✅ MaxLength
-- ✅ Focus and blur events
-- ✅ Readonly
-- ✅ Special characters
-
-**Cobertura:** 100% 🎯
-
----
-
-### 4. Componentes UI - Label (6 testes)
-**Arquivo:** `src/components/ui/__tests__/label.test.tsx`
-
-- ✅ Render com texto
-- ✅ Associação com input (htmlFor)
-- ✅ Custom className
-- ✅ Children elements
-- ✅ Trigger input focus ao clicar
-- ✅ Base classes
-
-**Cobertura:** 100% 🎯
-
----
-
-### 5. Componentes UI - Separator (6 testes)
-**Arquivo:** `src/components/ui/__tests__/separator.test.tsx`
-
-- ✅ Horizontal separator (default)
-- ✅ Vertical separator
-- ✅ Decorative role
-- ✅ Custom className
-- ✅ Base classes horizontal
-- ✅ Base classes vertical
-
-**Cobertura:** 100% 🎯
-
----
-
-### 6. Componentes UI - Skeleton (8 testes)
-**Arquivo:** `src/components/ui/__tests__/skeleton.test.tsx`
-
-- ✅ Render skeleton
-- ✅ Animate-pulse class
-- ✅ Rounded background
-- ✅ Custom className
-- ✅ Custom height
-- ✅ Custom width
-- ✅ Multiple skeletons
-- ✅ Circular skeleton
-
-**Cobertura:** 100% 🎯
-
----
-
-### 7. Componentes Dashboard - OverviewCards (10 testes)
-**Arquivo:** `src/components/dashboard/__tests__/overview-cards.test.tsx`
-
-- ✅ Loading skeletons
-- ✅ Render all cards
-- ✅ Total respondents
-- ✅ Completion rate formatting
-- ✅ Survey status capitalized
-- ✅ Card descriptions
-- ✅ Zero respondents
-- ✅ 100% completion rate
-- ✅ Different survey statuses
-- ✅ Responsive grid layout
-
-**Cobertura:** 100% 🎯
+### 3. Utilitários e Hooks
+- ✅ **utils.ts:** 100% de cobertura nas funções `cn` e `getScoreColorClass`.
+- ✅ **use-toast.ts:** Testes exaustivos do sistema de notificações (add, dismiss, update).
 
 ---
 
 ## 📊 Cobertura Detalhada por Módulo
 
-```
--------------------|---------|----------|---------|---------|
-File               | % Stmts | % Branch | % Funcs | % Lines |
--------------------|---------|----------|---------|---------|
-All files          |   88.52 |    57.89 |      95 |   91.37 |
--------------------|---------|----------|---------|---------|
-components/dashboard
-  overview-cards   |     100 |      100 |     100 |     100 | ✅
--------------------|---------|----------|---------|---------|
-components/ui
-  badge.tsx        |     100 |      100 |     100 |     100 | ✅
-  button.tsx       |     100 |      100 |     100 |     100 | ✅
-  card.tsx         |     100 |      100 |     100 |     100 | ✅
-  input.tsx        |     100 |      100 |     100 |     100 | ✅
-  label.tsx        |     100 |      100 |     100 |     100 | ✅
-  separator.tsx    |     100 |      100 |     100 |     100 | ✅
-  skeleton.tsx     |     100 |      100 |     100 |     100 | ✅
--------------------|---------|----------|---------|---------|
-hooks
-  use-mobile.tsx   |     100 |      100 |     100 |     100 | ✅
--------------------|---------|----------|---------|---------|
-lib
-  utils.ts         |    12.5 |        0 |      50 |   16.66 | ⚠️
--------------------|---------|----------|---------|---------|
-```
+| Módulo | % Linhas | Status |
+|--------|----------|--------|
+| **Components/Admin** | 100% | ✅ |
+| **Components/Dashboard** | 100% | ✅ |
+| **Components/UI** | 97.18% | ✅ |
+| **Hooks** | 86.88% | ✅ |
+| **Lib/Utils** | 100% | ✅ |
 
 ---
 
-## 🎯 Componentes com 100% de Cobertura
+## 🛠️ Infraestrutura de Testes
 
-✅ **7 Componentes UI:**
-1. Badge
-2. Button
-3. Card (+ CardHeader, CardTitle, CardDescription, CardContent, CardFooter)
-4. Input
-5. Label
-6. Separator
-7. Skeleton
-
-✅ **1 Componente Dashboard:**
-1. OverviewCards
-
-✅ **1 Hook:**
-1. useIsMobile
-
-**Total:** 9 módulos com 100% de cobertura 🎯
+Durante esta sessão, a infraestrutura foi robustecida para suportar as complexidades do Next.js e Radix UI:
+1. **Mocks Globais:** Implementação de `ResizeObserver`, `PointerEvent` e `scrollIntoView` para componentes Radix.
+2. **Firebase Mocking:** Setup centralizado para `useFirestore`, `useAuth`, `useCollection` e operações de CRUD.
+3. **Radix Portals:** Estratégia de `findByRole` e `findByText` para capturar elementos renderizados em Portals.
+4. **Custom Render:** Injeção automática de providers necessários em todos os testes.
 
 ---
 
 ## 📝 Próximos Passos
 
-### Testes Pendentes (Prioridade Alta)
-
-1. **Componentes UI Restantes:**
-   - [ ] Checkbox
-   - [ ] Select
-   - [ ] Dialog
-   - [ ] Dropdown Menu
-   - [ ] Tabs
-   - [ ] Toast
-
-2. **Componentes Admin:**
-   - [ ] AddCompanyForm
-   - [ ] AddSurveyForm
-   - [ ] CompaniesTable
-   - [ ] StatusMenu
-
-3. **Componentes Charts:**
+1. **Componentes Charts:**
    - [ ] DomainScoreGauge
    - [ ] DomainsRadarChart
    - [ ] SentimentBarChart
-
-4. **Hooks:**
-   - [ ] useToast
-
-5. **Lib/Utils:**
-   - [ ] Aumentar cobertura de utils.ts (atualmente 12.5%)
-
-### Melhorias Planejadas
-
-- [ ] Adicionar testes de integração
-- [ ] Adicionar testes de acessibilidade (a11y)
-- [ ] Configurar testes de snapshot
-- [ ] Adicionar testes E2E com Playwright
-- [ ] Aumentar cobertura geral para 90%+
-
----
-
-## 🏆 Conquistas
-
-- ✅ **72 testes** passando (100% success rate)
-- ✅ **88.52%** de cobertura geral
-- ✅ **100%** de cobertura em 9 módulos
-- ✅ **95%** de cobertura de funções
-- ✅ **91.37%** de cobertura de linhas
-- ✅ Tempo de execução: ~1.4s (rápido!)
-
----
-
-## 💡 Boas Práticas Aplicadas
-
-1. ✅ Testes focados em comportamento, não implementação
-2. ✅ Uso de queries acessíveis (getByRole, getByLabelText)
-3. ✅ Simulação de interações reais com userEvent
-4. ✅ Testes de estados de loading e erro
-5. ✅ Organização com describe/it
-6. ✅ Setup comum com beforeEach
-7. ✅ Testes de casos de borda
-8. ✅ Cleanup automático após cada teste
-
----
-
-## 🎊 Conclusão
-
-A expansão de testes foi um **sucesso absoluto**! Aumentamos a cobertura de testes em **350%**, alcançando **100% de cobertura** em todos os componentes críticos testados.
-
-O projeto agora tem uma base sólida de testes que garante:
-- ✅ Qualidade do código
-- ✅ Confiabilidade
-- ✅ Facilidade de refatoração
-- ✅ Documentação viva do comportamento esperado
-
-**Próximo passo:** Continuar expandindo testes para componentes admin e charts! 🚀
+2. **Testes E2E:** Configuração do Playwright para fluxos críticos de usuário.
+3. **CI/CD:** Monitoramento contínuo via GitHub Actions (configurado e ativo).
 
 ---
 

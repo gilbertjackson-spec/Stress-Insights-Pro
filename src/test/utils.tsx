@@ -88,7 +88,7 @@ export const mockResponse = {
 /**
  * Função helper para criar delay em testes assíncronos
  */
-export const waitFor = (ms: number) =>
+export const delay = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
