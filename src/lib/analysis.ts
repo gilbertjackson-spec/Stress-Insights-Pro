@@ -2,6 +2,7 @@
 
 import type { Answer, DashboardData, Demographics, Domain, DomainAnalysis, Question, QuestionAnalysis, Respondent, SurveyDeployment, SurveyStatus, SurveyTemplate } from './types';
 import { getDocs, collection, doc, getDoc, Firestore } from 'firebase/firestore';
+import { LIKERT_SCALE } from './constants';
 
 export interface Filters {
   unit?: string | 'all';
@@ -92,9 +93,9 @@ function filterRespondents(respondents: Respondent[], filters: Filters): Respond
   });
 }
 
-function analyzeQuestion(questionId: string, respondents: Respondent[]): { average_score: number; sentiment_distribution: any } {
+function analyzeQuestion(question: Question, respondents: Respondent[]): { average_score: number; sentiment_distribution: any } {
   const relevantAnswers = respondents.flatMap(r => 
-      (r.answers || []).filter(a => a.questionId === questionId)
+      (r.answers || []).filter(a => a.questionId === question.id)
   );
 
   if (relevantAnswers.length === 0) {
@@ -107,17 +108,32 @@ function analyzeQuestion(questionId: string, respondents: Respondent[]): { avera
     };
   }
 
-  const totalScore = relevantAnswers.reduce((sum, answer) => sum + answer.calculatedScore, 0);
-  const average_score = totalScore / relevantAnswers.length;
+  const scoresAndSentiments = relevantAnswers.map(answer => {
+    const rawResponseIndex = LIKERT_SCALE.indexOf(answer.rawResponse);
+    const baseScore = rawResponseIndex !== -1 ? rawResponseIndex + 1 : 0;
+    
+    // Always recalculate score based on the question's current `isInvertedScore` flag
+    const calculatedScore = question.isInvertedScore ? 6 - baseScore : baseScore;
+    
+    let sentiment: 'Favorável' | 'Neutro' | 'Desfavorável';
+    if (calculatedScore <= 2) sentiment = 'Desfavorável';
+    else if (calculatedScore === 3) sentiment = 'Neutro';
+    else sentiment = 'Favorável';
 
-  const sentimentCounts = relevantAnswers.reduce((counts, answer) => {
-    if (answer.sentiment === 'Favorável') counts.favorable_count++;
-    else if (answer.sentiment === 'Neutro') counts.neutral_count++;
-    else if (answer.sentiment === 'Desfavorável') counts.unfavorable_count++;
+    return { calculatedScore, sentiment };
+  });
+
+  const totalScore = scoresAndSentiments.reduce((sum, item) => sum + item.calculatedScore, 0);
+  const average_score = totalScore / scoresAndSentiments.length;
+
+  const sentimentCounts = scoresAndSentiments.reduce((counts, item) => {
+    if (item.sentiment === 'Favorável') counts.favorable_count++;
+    else if (item.sentiment === 'Neutro') counts.neutral_count++;
+    else if (item.sentiment === 'Desfavorável') counts.unfavorable_count++;
     return counts;
   }, { favorable_count: 0, neutral_count: 0, unfavorable_count: 0 });
 
-  const totalAnswers = relevantAnswers.length;
+  const totalAnswers = scoresAndSentiments.length;
   const sentiment_distribution = {
     ...sentimentCounts,
     favorable_perc: (sentimentCounts.favorable_count / totalAnswers) * 100,
@@ -128,9 +144,10 @@ function analyzeQuestion(questionId: string, respondents: Respondent[]): { avera
   return { average_score, sentiment_distribution };
 }
 
+
 function analyzeDomain(domain: Domain, respondents: Respondent[]): DomainAnalysis {
   const questions_analysis: QuestionAnalysis[] = domain.questions.map(q => {
-    const { average_score, sentiment_distribution } = analyzeQuestion(q.id, respondents);
+    const { average_score, sentiment_distribution } = analyzeQuestion(q, respondents);
     return {
       question_id: q.id,
       question_code: q.questionCode,
