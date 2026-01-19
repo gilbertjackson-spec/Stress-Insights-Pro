@@ -1,37 +1,36 @@
 'use client';
-import { collection, doc, getDocs, writeBatch, Firestore } from 'firebase/firestore';
+import { collection, doc, getDocs, writeBatch, Firestore, deleteDoc } from 'firebase/firestore';
 import { getMockSurveyTemplate } from './mock-data';
 
 /**
- * Populates the Firestore database with the initial survey template if it doesn't already exist.
- * This is intended to be run once by a client-side action.
+ * Populates the Firestore database with the initial survey template.
+ * This function will first DELETE any existing templates to ensure the configuration is fresh.
  * @param firestore The Firestore instance.
  */
 export const seedDatabase = async (firestore: Firestore) => {
-  console.log('Checking if seeding is necessary...');
+  console.log('Checking for existing templates to delete...');
   
-  // 1. Check if the survey_templates collection is empty
   const templatesCollectionRef = collection(firestore, 'survey_templates');
   const existingTemplatesSnap = await getDocs(templatesCollectionRef);
 
+  // Delete existing templates to ensure a fresh start with correct configuration
   if (!existingTemplatesSnap.empty) {
-    console.log('Database already contains survey templates. Seeding is not required.');
-    return;
+    console.log(`Found ${existingTemplatesSnap.size} existing templates. Deleting them now...`);
+    const deletePromises = existingTemplatesSnap.docs.map(doc => deleteDoc(doc.ref));
+    await Promise.all(deletePromises);
+    console.log('All existing templates deleted.');
   }
   
   console.log('Seeding database with initial survey template...');
   const template = getMockSurveyTemplate();
   
-  // 2. Create a write batch to perform all writes atomically
   const batch = writeBatch(firestore);
 
-  // 3. Add the main SurveyTemplate document
   const templateDocRef = doc(templatesCollectionRef, template.id);
   batch.set(templateDocRef, {
     name: template.name,
   });
 
-  // 4. Add all domains and their questions as subcollections
   for (const domain of template.domains) {
     const domainDocRef = doc(templateDocRef, 'domains', domain.id);
     batch.set(domainDocRef, {
@@ -51,12 +50,11 @@ export const seedDatabase = async (firestore: Firestore) => {
         questionCode: question.questionCode,
         questionText: question.questionText,
         isInvertedScore: question.isInvertedScore,
-        domainId: domain.id, // denormalize for easier lookup if needed
+        domainId: domain.id,
       });
     }
   }
 
-  // 5. Commit the batch
   try {
     await batch.commit();
     console.log('Database seeded successfully!');

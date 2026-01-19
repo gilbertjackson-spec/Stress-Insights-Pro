@@ -1,5 +1,5 @@
 import type { Company, SurveyTemplate, Respondent, Demographics, Answer, Sentiment } from './types';
-import { DOMAIN_QUESTIONS_MAP, LIKERT_SCALE, INVERTED_DOMAINS } from './constants';
+import { DOMAIN_QUESTIONS_MAP, LIKERT_SCALE, NEGATIVE_QUESTION_CODES } from './constants';
 
 // This file is a bit of a mess because it was used for early prototyping.
 // It generates a lot of data that is not used in the final version of the app,
@@ -66,7 +66,7 @@ const surveyTemplate: SurveyTemplate = {
         domainId: String(index + 1),
         questionCode: code,
         questionText: question ? question.text : `Texto para a pergunta ${code}`,
-        isInvertedScore: INVERTED_DOMAINS.includes(domainName),
+        isInvertedScore: NEGATIVE_QUESTION_CODES.includes(code),
       };
     }),
   })),

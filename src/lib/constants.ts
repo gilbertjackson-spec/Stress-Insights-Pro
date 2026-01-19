@@ -13,7 +13,21 @@ export const DOMAIN_QUESTIONS_MAP: Record<string, string[]> = {
 };
 
 export const LIKERT_SCALE = ["Nunca", "Raramente", "Às vezes", "Muitas vezes", "Sempre"];
-export const INVERTED_DOMAINS = ['Demandas', 'Relacionamentos'];
+
+// List of negatively-worded questions that need their scores inverted.
+export const NEGATIVE_QUESTION_CODES = [
+  'Q-03', // "Diferentes grupos no trabalho exigem de mim coisas que são difíceis de combinar."
+  'Q-06', // "Tenho prazos muito difíceis de alcançar."
+  'Q-09', // "Tenho que trabalhar em um ritmo muito intenso."
+  'Q-12', // "Tenho que negligenciar algumas das minhas tarefas porque tenho muito o que fazer."
+  'Q-14', // "Há atritos ou animosidade entre os colegas de trabalho."
+  'Q-16', // "Diferentes pessoas podem me pedir para fazer coisas contraditórias no trabalho."
+  'Q-18', // "Sinto pressão para trabalhar longas horas."
+  'Q-20', // "Tenho que trabalhar muito rápido."
+  'Q-21', // "Sou assediado(a) ou intimidado(a) no trabalho."
+  'Q-34', // "As relações de trabalho são tensas."
+];
+
 
 export const DEMOGRAPHIC_FILTERS = {
   unit: 'Unidade',

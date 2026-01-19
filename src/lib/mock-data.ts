@@ -1,5 +1,5 @@
 import type { SurveyTemplate } from './types';
-import { DOMAIN_QUESTIONS_MAP, INVERTED_DOMAINS } from './constants';
+import { DOMAIN_QUESTIONS_MAP, NEGATIVE_QUESTION_CODES } from './constants';
 
 const questionsData: { code: string; text: string }[] = [
   { code: 'Q-01', text: 'Tenho clareza sobre os objetivos e as responsabilidades do meu cargo.' },
@@ -66,7 +66,7 @@ const surveyTemplate: SurveyTemplate = {
           domainId: currentDomainId,
           questionCode: code,
           questionText: question ? question.text : `Texto para a pergunta ${code}`,
-          isInvertedScore: INVERTED_DOMAINS.includes(domainName),
+          isInvertedScore: NEGATIVE_QUESTION_CODES.includes(code),
         };
       }),
     };
