@@ -1,65 +1,65 @@
-# Development Workflow & AI Agent Handoff
+# Fluxo de Desenvolvimento & Handoff para Agente de IA
 
-This document outlines the standardized development process for the Stress Insights Pro project. Following these rules is crucial for ensuring a smooth and consistent workflow, especially when collaborating between different AI development environments (Firebase Studio and Antigravity).
+Este documento descreve o processo de desenvolvimento padronizado para o projeto Stress Insights Pro. Seguir estas regras é crucial para garantir um fluxo de trabalho suave e consistente, especialmente ao colaborar entre diferentes ambientes de desenvolvimento de IA (Firebase Studio e Antigravity).
 
-## Core Development Cycle
+## Ciclo de Desenvolvimento Principal
 
-Our workflow is based on Git, using a single `main` branch. Always follow this cycle to prevent conflicts and ensure your work is properly integrated.
+Nosso fluxo de trabalho é baseado no Git, utilizando um único branch `main`. Siga sempre este ciclo para prevenir conflitos e garantir que seu trabalho seja integrado corretamente.
 
-### 1. Start of a New Session (Pull)
+### 1. Início de uma Nova Sessão (Pull)
 
-**Always** begin your work session by pulling the latest changes from the GitHub repository. This ensures you are working with the most up-to-date version of the code.
+**Sempre** comece sua sessão de trabalho baixando as últimas alterações do repositório do GitHub. Isso garante que você está trabalhando com a versão mais atualizada do código.
 
 ```bash
 git pull origin main
 ```
 
-### 2. End of Your Session (Push)
+### 2. Fim da Sua Sessão (Push)
 
-Once you have completed your task or reached a stable checkpoint, you **must** commit and push your changes back to the repository.
+Assim que você concluir sua tarefa ou atingir um ponto estável, você **deve** fazer o commit e o push de suas alterações de volta para o repositório.
 
 ```bash
-# Stage all your changes
+# Adiciona todas as suas alterações
 git add .
 
-# Commit your changes with a descriptive message
-git commit -m "feat: [Brief description of the main feature added]"
-# (Use 'fix:', 'docs:', 'style:', etc. as appropriate)
+# Faz o commit das suas alterações com uma mensagem descritiva
+git commit -m "feat: [Breve descrição da principal funcionalidade adicionada]"
+# (Use 'fix:', 'docs:', 'style:', etc. conforme apropriado)
 
-# Push your changes to the main branch
+# Envia suas alterações para o branch main
 git push origin main
 ```
 
-## Firebase Deployments
+## Publicações no Firebase
 
-**Critical Rule:** All deployments, configurations, and interactions with the Firebase Console (like provisioning services) must be handled exclusively within the **Firebase Studio environment**. The Antigravity agent should not attempt to deploy or alter Firebase configurations directly.
+**Regra Crítica:** Todas as publicações, configurações e interações com o Firebase Console (como provisionamento de serviços) devem ser tratadas exclusivamente no ambiente do **Firebase Studio**. O agente do Antigravity não deve tentar publicar ou alterar configurações do Firebase diretamente.
 
-## AI Agent Handoff Protocol
+## Protocolo de Handoff entre Agentes de IA
 
-When switching development from one AI agent to another (e.g., from Gemini in Firebase Studio to the Antigravity agent, or vice-versa), use the prompt template below. This ensures a seamless transition and provides the necessary context for the next agent to continue the work.
+Ao transferir o desenvolvimento de um agente de IA para outro (ex: do Gemini no Firebase Studio para o agente Antigravity, ou vice-versa), use o modelo de prompt abaixo. Isso garante uma transição suave e fornece o contexto necessário para que o próximo agente continue o trabalho.
 
 ---
 
-### **Handoff Prompt Template (Copy and Paste)**
+### **Modelo de Prompt para Handoff (Copie e Cole)**
 
-**Subject:** Handoff for "Stress Insights Pro" Project
+**Assunto:** Handoff do Projeto "Stress Insights Pro"
 
-**Repository:** `https://github.com/gilbertjackson-spec/Stress-Insights-Pro.git`
+**Repositório:** `https://github.com/gilbertjackson-spec/Stress-Insights-Pro.git`
 
-**Hello!** I'm handing off the development of the "Stress Insights Pro" project to you. Please follow the rules in the `CONTRIBUTING.md` file (start with `git pull` and end with `git push`).
+**Olá!** Estou passando o desenvolvimento do projeto "Stress Insights Pro" para você. Por favor, siga as regras no arquivo `CONTRIBUTING.md` (comece com `git pull` e termine com `git push`).
 
-**Context:**
-The project is a Next.js application for creating and analyzing stress surveys for companies. It uses Firebase for the backend (Firestore and Auth) and is integrated with GitHub for version control and CI/CD.
+**Contexto:**
+O projeto é uma aplicação Next.js para criar e analisar pesquisas de estresse para empresas. Ele usa o Firebase para o backend (Firestore e Auth) e é integrado ao GitHub para controle de versão e CI/CD.
 
-**Last Session Summary (Work done by the previous agent):**
-*   [**Example:** We just finished setting up the complete GitHub integration, including a `.gitignore` file and a CI workflow using GitHub Actions to lint, type-check, and build the project on every push.]
-*   [**Example:** I implemented the backend logic and UI for exporting survey responses to a CSV file, respecting the dashboard filters.]
-*   [**Example:** I optimized Firestore queries on the main dashboard and survey-taking page to load data in cascade, significantly improving performance.]
+**Resumo da Última Sessão (Trabalho feito pelo agente anterior):**
+*   [**Exemplo:** Acabamos de configurar a integração completa com o GitHub, incluindo um arquivo `.gitignore` e um workflow de CI com GitHub Actions para lint, verificação de tipos e build do projeto a cada push.]
+*   [**Exemplo:** Implementei a lógica de backend e a UI para exportar as respostas da pesquisa para um arquivo CSV, respeitando os filtros do dashboard.]
+*   [**Exemplo:** Otimizei as consultas ao Firestore no dashboard principal e na página de resposta da pesquisa para carregar os dados em cascata, melhorando significativamente a performance.]
 
-**Next Steps (Your Task):**
-*   [**Example:** Now, I need you to implement the user profile page where users can change their name and profile picture.]
-*   [**Example:** Your task is to build the "Reports" tab within the company details page.]
+**Próximos Passos (Sua Tarefa):**
+*   [**Exemplo:** Agora, preciso que você implemente a página de perfil do usuário, onde os usuários podem alterar seu nome e foto de perfil.]
+*   [**Exemplo:** Sua tarefa é construir a aba "Relatórios" dentro da página de detalhes da empresa.]
 
-Please begin by pulling the latest changes from the `main` branch. Good luck!
+Por favor, comece baixando as últimas alterações do branch `main`. Boa sorte!
 
 ---
