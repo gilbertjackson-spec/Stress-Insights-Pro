@@ -130,6 +130,7 @@ export interface DomainAnalysis {
 }
 
 export interface DashboardData {
+  deploymentName: string;
   total_respondents: number;
   completion_rate: number;
   surveyStatus: SurveyStatus;

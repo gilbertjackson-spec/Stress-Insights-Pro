@@ -221,6 +221,7 @@ export async function getDashboardData(firestore: Firestore, deploymentId: strin
   };
 
   return {
+    deploymentName: deployment.name,
     total_respondents,
     completion_rate,
     surveyStatus: deployment.status as SurveyStatus,
