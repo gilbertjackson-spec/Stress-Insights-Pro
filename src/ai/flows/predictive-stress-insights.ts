@@ -1,4 +1,4 @@
-/*
+
 'use server';
 
 /**
@@ -7,10 +7,10 @@
  * - predictStressHotspots - A function that analyzes survey responses and demographic data to predict stress hotspots.
  * - PredictiveStressInsightsInput - The input type for the predictStressHotspots function.
  * - PredictiveStressInsightsOutput - The return type for the predictStressHotspots function.
- *'/
+ */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const PredictiveStressInsightsInputSchema = z.object({
   deploymentId: z
@@ -77,4 +77,3 @@ const predictiveStressInsightsFlow = ai.defineFlow(
     return output!;
   }
 );
-*/

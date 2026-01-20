@@ -1,4 +1,4 @@
-/*
+
 'use server';
 
 /**
@@ -7,10 +7,10 @@
  * - generateRecommendations - A function that generates recommendations based on the analysis of survey data.
  * - GenerateRecommendationsInput - The input type for the generateRecommendations function.
  * - GenerateRecommendationsOutput - The return type for the generateRecommendations function.
- *'/
+ */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const GenerateRecommendationsInputSchema = z.object({
   domainScores: z.record(z.number()).describe('A map of domain names to their corresponding scores.'),
@@ -64,4 +64,3 @@ const generateRecommendationsFlow = ai.defineFlow(
     return output!;
   }
 );
-*/
