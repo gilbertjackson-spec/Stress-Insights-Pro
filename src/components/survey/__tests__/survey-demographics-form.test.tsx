@@ -79,10 +79,10 @@ describe('SurveyDemographicsForm Component', () => {
             />
         );
 
-        const sectorSelect = screen.getByRole('combobox', { name: /setor/i });
+        const sectorSelect = screen.getByRole('combobox', { name: 'Setor' });
         expect(sectorSelect).toBeDisabled();
 
-        await user.click(screen.getByRole('combobox', { name: /unidade/i }));
+        await user.click(screen.getByRole('combobox', { name: 'Unidade' }));
         await user.click(await screen.findByRole('option', { name: 'Unidade Alpha' }));
 
         expect(mockOnUnitChange).toHaveBeenCalledWith('unit-1');
@@ -119,7 +119,7 @@ describe('SurveyDemographicsForm Component', () => {
         );
         
         // 1. Select Unit
-        await user.click(screen.getByRole('combobox', { name: /unidade/i }));
+        await user.click(screen.getByRole('combobox', { name: 'Unidade' }));
         await user.click(await screen.findByRole('option', { name: 'Unidade Alpha' }));
         
         // 2. Rerender with sectors
@@ -135,9 +135,9 @@ describe('SurveyDemographicsForm Component', () => {
     
         // 3. Select Sector
         await waitFor(() => {
-            expect(screen.getByRole('combobox', { name: /setor/i })).not.toBeDisabled();
+            expect(screen.getByRole('combobox', { name: 'Setor' })).not.toBeDisabled();
         });
-        await user.click(screen.getByRole('combobox', { name: /setor/i }));
+        await user.click(screen.getByRole('combobox', { name: 'Setor' }));
         await user.click(await screen.findByRole('option', { name: 'Setor Gamma' }));
     
         // 4. Rerender with positions
@@ -153,9 +153,9 @@ describe('SurveyDemographicsForm Component', () => {
     
         // 5. Select Position
         await waitFor(() => {
-            expect(screen.getByRole('combobox', { name: /cargo/i })).not.toBeDisabled();
+            expect(screen.getByRole('combobox', { name: 'Cargo' })).not.toBeDisabled();
         });
-        await user.click(screen.getByRole('combobox', { name: /cargo/i }));
+        await user.click(screen.getByRole('combobox', { name: 'Cargo' }));
         await user.click(await screen.findByRole('option', { name: 'Cargo Delta' }));
     
         // 6. Submit

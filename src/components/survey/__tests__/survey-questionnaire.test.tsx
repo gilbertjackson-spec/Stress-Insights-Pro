@@ -17,16 +17,6 @@ vi.mock('@/firebase', async (importOriginal) => {
         useMemoFirebase: vi.fn((fn) => fn()),
     };
 });
-vi.mock('firebase/firestore', async (importOriginal) => {
-    const original = await importOriginal<typeof import('firebase/firestore')>();
-    return {
-        ...original,
-        getDocs: vi.fn(),
-        collection: vi.fn(),
-        doc: vi.fn(),
-    };
-});
-
 
 const mockTemplate: Omit<SurveyTemplate, 'domains'> = { id: 't1', name: 'Test Questionnaire' };
 const mockDomains: Domain[] = [
@@ -40,15 +30,19 @@ const mockQuestions: Record<string, Question[]> = {
 
 describe('SurveyQuestionnaire Component', () => {
     const mockOnComplete = vi.fn();
-    const { getDocs, collection } = await import('firebase/firestore');
+    let getDocs: any, collection: any;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        // Dynamically import inside async context
+        const firestore = await import('firebase/firestore');
+        getDocs = firestore.getDocs;
+        collection = firestore.collection;
+
         vi.clearAllMocks();
         (useDoc as any).mockReturnValue({ data: mockTemplate, isLoading: false });
         (useCollection as any).mockReturnValue({ data: mockDomains, isLoading: false });
 
         (getDocs as any).mockImplementation((query: any) => {
-            // A bit simplified, assumes path is like '.../domains/d1/questions'
             const pathParts = query.path.split('/');
             const domainId = pathParts[3];
             return Promise.resolve({
