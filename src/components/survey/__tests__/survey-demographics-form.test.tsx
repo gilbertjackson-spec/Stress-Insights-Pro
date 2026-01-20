@@ -69,17 +69,12 @@ describe('SurveyDemographicsForm Component', () => {
 
     it('should enable sector select after a unit is chosen', async () => {
         const user = userEvent.setup();
-        render(
+        const { rerender } = render(
             <SurveyDemographicsForm
                 onSubmit={mockOnSubmit}
-                isLoadingUnits={false}
-                isLoadingSectors={false}
-                isLoadingPositions={false}
-                units={mockUnits}
-                sectors={[]}
-                positions={[]}
-                onUnitChange={mockOnUnitChange}
-                onSectorChange={mockOnSectorChange}
+                isLoadingUnits={false} isLoadingSectors={true} isLoadingPositions={false}
+                units={mockUnits} sectors={[]} positions={[]}
+                onUnitChange={mockOnUnitChange} onSectorChange={mockOnSectorChange}
                 selectedUnit=""
             />
         );
@@ -88,41 +83,84 @@ describe('SurveyDemographicsForm Component', () => {
         expect(sectorSelect).toBeDisabled();
 
         await user.click(screen.getByRole('combobox', { name: /unidade/i }));
-        await user.click(await screen.findByText('Unidade Alpha'));
+        await user.click(await screen.findByRole('option', { name: 'Unidade Alpha' }));
 
         expect(mockOnUnitChange).toHaveBeenCalledWith('unit-1');
-        // In a real scenario, the parent would re-render with the sector select enabled.
-    });
-
-    it('should call onSubmit with correct data', async () => {
-        const user = userEvent.setup();
-        render(
-            <SurveyDemographicsForm
+        
+        // Simulate parent component providing new props after unit change
+        rerender(
+             <SurveyDemographicsForm
                 onSubmit={mockOnSubmit}
-                isLoadingUnits={false}
-                isLoadingSectors={false}
-                isLoadingPositions={false}
-                units={mockUnits}
-                sectors={mockSectors}
-                positions={mockPositions}
-                onUnitChange={mockOnUnitChange}
-                onSectorChange={mockOnSectorChange}
+                isLoadingUnits={false} isLoadingSectors={false} isLoadingPositions={true}
+                units={mockUnits} sectors={mockSectors} positions={[]}
+                onUnitChange={mockOnUnitChange} onSectorChange={mockOnSectorChange}
                 selectedUnit="unit-1"
             />
         );
         
-        // Fill form
+        await waitFor(() => {
+            expect(sectorSelect).not.toBeDisabled();
+        });
+
+        await user.click(sectorSelect);
+        expect(await screen.findByRole('option', { name: 'Setor Gamma' })).toBeInTheDocument();
+    });
+
+    it('should call onSubmit with correct data', async () => {
+        const user = userEvent.setup();
+        const { rerender } = render(
+            <SurveyDemographicsForm
+                onSubmit={mockOnSubmit}
+                isLoadingUnits={false} isLoadingSectors={false} isLoadingPositions={false}
+                units={mockUnits} sectors={[]} positions={[]}
+                onUnitChange={mockOnUnitChange} onSectorChange={mockOnSectorChange}
+                selectedUnit=""
+            />
+        );
+        
+        // 1. Select Unit
         await user.click(screen.getByRole('combobox', { name: /unidade/i }));
-        await user.click(await screen.findByText('Unidade Alpha'));
+        await user.click(await screen.findByRole('option', { name: 'Unidade Alpha' }));
         
+        // 2. Rerender with sectors
+        rerender(
+            <SurveyDemographicsForm
+                onSubmit={mockOnSubmit}
+                isLoadingUnits={false} isLoadingSectors={false} isLoadingPositions={true}
+                units={mockUnits} sectors={mockSectors} positions={[]}
+                onUnitChange={mockOnSectorChange} onSectorChange={mockOnSectorChange}
+                selectedUnit="unit-1"
+            />
+        );
+    
+        // 3. Select Sector
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /setor/i })).not.toBeDisabled();
+        });
         await user.click(screen.getByRole('combobox', { name: /setor/i }));
-        await user.click(await screen.findByText('Setor Gamma'));
-        
+        await user.click(await screen.findByRole('option', { name: 'Setor Gamma' }));
+    
+        // 4. Rerender with positions
+        rerender(
+             <SurveyDemographicsForm
+                onSubmit={mockOnSubmit}
+                isLoadingUnits={false} isLoadingSectors={false} isLoadingPositions={false}
+                units={mockUnits} sectors={mockSectors} positions={mockPositions}
+                onUnitChange={mockOnUnitChange} onSectorChange={mockOnSectorChange}
+                selectedUnit="unit-1"
+            />
+        );
+    
+        // 5. Select Position
+        await waitFor(() => {
+            expect(screen.getByRole('combobox', { name: /cargo/i })).not.toBeDisabled();
+        });
         await user.click(screen.getByRole('combobox', { name: /cargo/i }));
-        await user.click(await screen.findByText('Cargo Delta'));
-
+        await user.click(await screen.findByRole('option', { name: 'Cargo Delta' }));
+    
+        // 6. Submit
         await user.click(screen.getByRole('button', { name: /continuar para a pesquisa/i }));
-
+    
         await waitFor(() => {
             expect(mockOnSubmit).toHaveBeenCalledWith({
                 unit: 'unit-1',

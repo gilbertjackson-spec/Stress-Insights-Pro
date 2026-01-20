@@ -14,6 +14,7 @@ vi.mock('@/firebase', async (importOriginal) => {
         useDoc: vi.fn(),
         useCollection: vi.fn(),
         useFirestore: vi.fn(() => ({})),
+        useMemoFirebase: vi.fn((fn) => fn()),
     };
 });
 vi.mock('firebase/firestore', async (importOriginal) => {
@@ -21,6 +22,8 @@ vi.mock('firebase/firestore', async (importOriginal) => {
     return {
         ...original,
         getDocs: vi.fn(),
+        collection: vi.fn(),
+        doc: vi.fn(),
     };
 });
 
@@ -37,7 +40,7 @@ const mockQuestions: Record<string, Question[]> = {
 
 describe('SurveyQuestionnaire Component', () => {
     const mockOnComplete = vi.fn();
-    const { getDocs } = await import('firebase/firestore');
+    const { getDocs, collection } = await import('firebase/firestore');
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -45,19 +48,25 @@ describe('SurveyQuestionnaire Component', () => {
         (useCollection as any).mockReturnValue({ data: mockDomains, isLoading: false });
 
         (getDocs as any).mockImplementation((query: any) => {
+            // A bit simplified, assumes path is like '.../domains/d1/questions'
             const pathParts = query.path.split('/');
             const domainId = pathParts[3];
             return Promise.resolve({
                 docs: (mockQuestions[domainId] || []).map(q => ({ id: q.id, data: () => q })),
             });
         });
+        (collection as any).mockImplementation((db: any, path: string) => ({
+            path,
+        }));
     });
 
     it('should render the questionnaire title and progress', async () => {
         render(<SurveyQuestionnaire deploymentId="dep1" templateId="t1" demographics={{}} onComplete={mockOnComplete} />);
 
-        expect(await screen.findByText('Test Questionnaire')).toBeInTheDocument();
-        expect(screen.getByText('0 de 2 perguntas respondidas')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('Test Questionnaire')).toBeInTheDocument();
+            expect(screen.getByText('0 de 2 perguntas respondidas')).toBeInTheDocument();
+        });
     });
 
     it('should allow answering a question and update progress', async () => {
@@ -66,7 +75,6 @@ describe('SurveyQuestionnaire Component', () => {
 
         expect(await screen.findByText('Question 1.1?')).toBeInTheDocument();
         
-        // Find radio button by its label 'Sempre' and click it
         const answerRadio = await screen.findByLabelText('Sempre');
         await user.click(answerRadio);
         
@@ -78,18 +86,16 @@ describe('SurveyQuestionnaire Component', () => {
         render(<SurveyQuestionnaire deploymentId="dep1" templateId="t1" demographics={{}} onComplete={mockOnComplete} />);
 
         await screen.findByText('Domain 1');
-        // Go to last slide
+        
         await user.click(screen.getByRole('button', { name: /próximo/i }));
         
         await waitFor(async () => {
-             // on the last slide, the button is "Finalizar"
-            const submitButton = await screen.findByRole('button', { name: /finalizar/i });
+            const submitButton = await screen.findByRole('button', { name: /finalizar e enviar respostas/i });
+            expect(submitButton).toBeInTheDocument();
             await user.click(submitButton);
         });
 
         expect(addAnswerBatch).not.toHaveBeenCalled();
-        // Check for toast message
-        // This is tricky without exporting the toast instance, but we can check the negative case.
     });
 
     it('should submit answers when all questions are answered', async () => {
@@ -97,17 +103,15 @@ describe('SurveyQuestionnaire Component', () => {
         (addAnswerBatch as any).mockResolvedValue('respondent-id');
         render(<SurveyQuestionnaire deploymentId="dep1" templateId="t1" demographics={{}} onComplete={mockOnComplete} />);
 
-        // Answer Q1
         await user.click(await screen.findByLabelText('Às vezes'));
-
-        // Go to next domain
         await user.click(screen.getByRole('button', { name: /próximo/i }));
 
-        // Answer Q2
-        await user.click(await screen.findByLabelText('Sempre'));
+        await waitFor(async () => {
+            expect(await screen.findByText('Question 2.1?')).toBeInTheDocument();
+        });
 
-        // Submit
-        const submitButton = await screen.findByRole('button', { name: /finalizar/i });
+        await user.click(await screen.findByLabelText('Sempre'));
+        const submitButton = await screen.findByRole('button', { name: /finalizar e enviar respostas/i });
         await user.click(submitButton);
         
         await waitFor(() => {

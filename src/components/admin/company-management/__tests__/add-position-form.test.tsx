@@ -49,7 +49,7 @@ describe('AddPositionForm Component', () => {
 
         // Select a unit
         await user.click(screen.getByRole('combobox', { name: /unidade/i }));
-        await user.click(await screen.findByText('Unidade Alpha'));
+        await user.click(await screen.findByRole('option', { name: 'Unidade Alpha' }));
 
         await waitFor(() => {
              expect(sectorSelect).not.toBeDisabled();
@@ -57,7 +57,7 @@ describe('AddPositionForm Component', () => {
 
         // Open sector select and check for options
         await user.click(sectorSelect);
-        expect(await screen.findByText('Setor Gamma')).toBeInTheDocument();
+        expect(await screen.findByRole('option', { name: 'Setor Gamma' })).toBeInTheDocument();
     });
 
     it('should call addPosition and onFinished on successful submission', async () => {
@@ -68,13 +68,13 @@ describe('AddPositionForm Component', () => {
 
         // Select unit
         await user.click(screen.getByRole('combobox', { name: /unidade/i }));
-        await user.click(await screen.findByText('Unidade Alpha'));
+        await user.click(await screen.findByRole('option', { name: 'Unidade Alpha' }));
 
         // Wait for sectors to load and select one
-        const sectorSelect = await screen.findByRole('combobox', { name: /setor/i });
+        const sectorSelect = screen.getByRole('combobox', { name: /setor/i });
         await waitFor(() => expect(sectorSelect).not.toBeDisabled());
         await user.click(sectorSelect);
-        await user.click(await screen.findByText('Setor Gamma'));
+        await user.click(await screen.findByRole('option', { name: 'Setor Gamma' }));
 
         // Fill in name
         await user.type(screen.getByLabelText(/nome do cargo/i), 'Novo Cargo');

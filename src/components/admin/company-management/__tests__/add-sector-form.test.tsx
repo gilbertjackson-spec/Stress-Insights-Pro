@@ -51,7 +51,7 @@ describe('AddSectorForm Component', () => {
 
         // Select a unit
         await user.click(screen.getByRole('combobox', { name: /unidade/i }));
-        await user.click(await screen.findByText('Unidade Alpha'));
+        await user.click(await screen.findByRole('option', { name: 'Unidade Alpha' }));
         
         // Fill in name
         await user.type(screen.getByLabelText(/nome do setor/i), 'Novo Setor');
