@@ -28,7 +28,7 @@ describe('AddSectorForm Component', () => {
         render(<AddSectorForm companyId={companyId} units={mockUnits} onFinished={mockOnFinished} />);
 
         expect(screen.getByLabelText(/nome do setor/i)).toBeInTheDocument();
-        expect(screen.getByText(/unidade/i)).toBeInTheDocument();
+        expect(screen.getByRole('combobox', { name: /unidade/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /adicionar setor/i })).toBeInTheDocument();
     });
 

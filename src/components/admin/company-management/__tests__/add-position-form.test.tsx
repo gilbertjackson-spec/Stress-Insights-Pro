@@ -36,8 +36,8 @@ describe('AddPositionForm Component', () => {
         render(<AddPositionForm companyId={companyId} units={mockUnits} onFinished={mockOnFinished} />);
 
         expect(screen.getByLabelText(/nome do cargo/i)).toBeInTheDocument();
-        expect(screen.getByText(/unidade/i)).toBeInTheDocument();
-        expect(screen.getByText(/setor/i)).toBeInTheDocument();
+        expect(screen.getByRole('combobox', { name: /unidade/i })).toBeInTheDocument();
+        expect(screen.getByRole('combobox', { name: /setor/i })).toBeInTheDocument();
     });
     
     it('should load sectors when a unit is selected', async () => {
@@ -70,8 +70,10 @@ describe('AddPositionForm Component', () => {
         await user.click(screen.getByRole('combobox', { name: /unidade/i }));
         await user.click(await screen.findByText('Unidade Alpha'));
 
-        // Select sector
-        await user.click(await screen.findByRole('combobox', { name: /setor/i }));
+        // Wait for sectors to load and select one
+        const sectorSelect = await screen.findByRole('combobox', { name: /setor/i });
+        await waitFor(() => expect(sectorSelect).not.toBeDisabled());
+        await user.click(sectorSelect);
         await user.click(await screen.findByText('Setor Gamma'));
 
         // Fill in name
