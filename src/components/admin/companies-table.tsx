@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -29,7 +30,7 @@ import { EditCompanyForm } from './edit-company-form';
 import { Skeleton } from '../ui/skeleton';
 import { PlusCircle, MoreHorizontal, Edit, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription as PageCardDescription } from '../ui/card';
 import type { Company } from '@/lib/types';
 
 
@@ -65,9 +66,9 @@ export default function CompaniesTable({
               <CardTitle className="text-2xl font-bold font-headline tracking-tight">
                   Gerenciar Empresas
               </CardTitle>
-              <CardDescription>
+              <PageCardDescription>
                   Adicione, visualize e gerencie as empresas de seus clientes.
-              </CardDescription>
+              </PageCardDescription>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
@@ -79,6 +80,9 @@ export default function CompaniesTable({
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Adicionar Nova Empresa</DialogTitle>
+                <DialogDescription>
+                  Insira o nome da nova empresa para adicioná-la à lista.
+                </DialogDescription>
               </DialogHeader>
               <div className="py-4">
                 <AddCompanyForm onFinished={handleFormFinished} />
@@ -153,6 +157,9 @@ export default function CompaniesTable({
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Editar Empresa</DialogTitle>
+             <DialogDescription>
+              Faça alterações no nome da empresa. Clique em salvar quando terminar.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             {selectedCompany && <EditCompanyForm company={selectedCompany} onFinished={handleFormFinished} />}

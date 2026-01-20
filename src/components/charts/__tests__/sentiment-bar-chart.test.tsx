@@ -43,8 +43,9 @@ describe('SentimentBarChart Component', () => {
         const favorableSegment = container.firstChild?.childNodes[2] as HTMLElement;
         await user.hover(favorableSegment);
         
-        expect(await screen.findByRole('tooltip')).toBeInTheDocument();
-        expect(await screen.findByText('Favorável: 70.0%')).toBeInTheDocument();
+        const tooltip = await screen.findByRole('tooltip');
+        expect(tooltip).toBeInTheDocument();
+        expect(tooltip).toHaveTextContent('Favorável: 70.0%');
     });
 
     it('should handle cases where one or two sentiments are zero', () => {
