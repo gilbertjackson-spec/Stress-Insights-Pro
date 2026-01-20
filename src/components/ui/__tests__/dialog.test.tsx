@@ -19,7 +19,10 @@ describe('Dialog Components', () => {
                 <Dialog>
                     <DialogTrigger>Open</DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>Dialog Title</DialogTitle>
+                        <DialogHeader>
+                            <DialogTitle>Dialog Title</DialogTitle>
+                            <DialogDescription>Dialog Description</DialogDescription>
+                        </DialogHeader>
                     </DialogContent>
                 </Dialog>
             );
@@ -34,8 +37,10 @@ describe('Dialog Components', () => {
                 <Dialog>
                     <DialogTrigger>Open Dialog</DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>Dialog Title</DialogTitle>
-                        <DialogDescription>Dialog Description</DialogDescription>
+                        <DialogHeader>
+                            <DialogTitle>Dialog Title</DialogTitle>
+                            <DialogDescription>Dialog Description</DialogDescription>
+                        </DialogHeader>
                     </DialogContent>
                 </Dialog>
             );
@@ -54,7 +59,10 @@ describe('Dialog Components', () => {
                 <Dialog>
                     <DialogTrigger>Open</DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>Title</DialogTitle>
+                        <DialogHeader>
+                            <DialogTitle>Title</DialogTitle>
+                            <DialogDescription>A simple dialog description.</DialogDescription>
+                        </DialogHeader>
                         <DialogClose asChild>
                             <Button>Fechar</Button>
                         </DialogClose>
@@ -77,7 +85,10 @@ describe('Dialog Components', () => {
                 <Dialog open={false} onOpenChange={handleOpenChange}>
                     <DialogTrigger>Open</DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>Title</DialogTitle>
+                        <DialogHeader>
+                            <DialogTitle>Title</DialogTitle>
+                            <DialogDescription>A simple dialog description.</DialogDescription>
+                        </DialogHeader>
                     </DialogContent>
                 </Dialog>
             );
@@ -91,7 +102,10 @@ describe('Dialog Components', () => {
                 <Dialog open={true} onOpenChange={handleOpenChange}>
                     <DialogTrigger>Open</DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>Title</DialogTitle>
+                        <DialogHeader>
+                            <DialogTitle>Title</DialogTitle>
+                            <DialogDescription>A simple dialog description.</DialogDescription>
+                        </DialogHeader>
                     </DialogContent>
                 </Dialog>
             );
@@ -131,7 +145,10 @@ describe('Dialog Components', () => {
                 <Dialog>
                     <DialogTrigger>Open</DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>Title</DialogTitle>
+                        <DialogHeader>
+                            <DialogTitle>Title</DialogTitle>
+                            <DialogDescription>A simple dialog description.</DialogDescription>
+                        </DialogHeader>
                         <DialogFooter>
                             <Button variant="outline">Cancel</Button>
                             <Button>Confirm</Button>
@@ -155,8 +172,10 @@ describe('Dialog Components', () => {
                 <Dialog>
                     <DialogTrigger>Open</DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>Accessible Dialog</DialogTitle>
-                        <DialogDescription>This dialog is accessible</DialogDescription>
+                        <DialogHeader>
+                            <DialogTitle>Accessible Dialog</DialogTitle>
+                            <DialogDescription>This dialog is accessible</DialogDescription>
+                        </DialogHeader>
                     </DialogContent>
                 </Dialog>
             );
@@ -176,7 +195,10 @@ describe('Dialog Components', () => {
                 <Dialog>
                     <DialogTrigger>Open</DialogTrigger>
                     <DialogContent>
-                        <DialogTitle>Title</DialogTitle>
+                        <DialogHeader>
+                            <DialogTitle>Title</DialogTitle>
+                            <DialogDescription>A simple dialog description.</DialogDescription>
+                        </DialogHeader>
                         <Button>First Button</Button>
                         <Button>Second Button</Button>
                     </DialogContent>
