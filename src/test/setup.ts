@@ -34,6 +34,15 @@ vi.mock('firebase/app', () => ({
     getApp: vi.fn(),
 }));
 
+// Mock do Genkit
+vi.mock('@/ai/genkit', () => ({
+    ai: {
+        defineFlow: vi.fn((opts, fn) => fn),
+        definePrompt: vi.fn(() => vi.fn(async () => Promise.resolve({ output: {} }))),
+    }
+}));
+
+
 // Cleanup após cada teste
 afterEach(() => {
     cleanup();
