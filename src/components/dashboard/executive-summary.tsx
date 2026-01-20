@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DashboardData } from "@/lib/types";
@@ -94,10 +96,10 @@ export default function ExecutiveSummary({ data, isLoading }: ExecutiveSummaryPr
                             ))}
                         </div>
                     </div>
-                    <AiRecommendationsDialog domainScores={data.domain_analysis.reduce((acc, domain) => {
+                    {/* <AiRecommendationsDialog domainScores={data.domain_analysis.reduce((acc, domain) => {
                         acc[domain.domain_name] = domain.domain_score;
                         return acc;
-                    }, {} as Record<string, number>)} />
+                    }, {} as Record<string, number>)} /> */}
                 </CardContent>
             </Card>
         </>
