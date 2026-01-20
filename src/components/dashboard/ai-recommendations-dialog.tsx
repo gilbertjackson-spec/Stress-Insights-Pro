@@ -1,3 +1,4 @@
+/*
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -105,3 +106,4 @@ export default function AiRecommendationsDialog({ domainScores }: AiRecommendati
     </Dialog>
   );
 }
+*/

@@ -1,3 +1,4 @@
+/*
 'use server';
 
 /**
@@ -6,7 +7,7 @@
  * - generateRecommendations - A function that generates recommendations based on the analysis of survey data.
  * - GenerateRecommendationsInput - The input type for the generateRecommendations function.
  * - GenerateRecommendationsOutput - The return type for the generateRecommendations function.
- */
+ *'/
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
@@ -63,3 +64,4 @@ const generateRecommendationsFlow = ai.defineFlow(
     return output!;
   }
 );
+*/

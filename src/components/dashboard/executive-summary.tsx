@@ -5,9 +5,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { DashboardData } from "@/lib/types";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import DomainsRadarChart from "../charts/domains-radar-chart";
-import { Button } from "../ui/button";
-import AiRecommendationsDialog from "./ai-recommendations-dialog";
-
 
 interface ExecutiveSummaryProps {
     data: DashboardData;
@@ -96,10 +93,6 @@ export default function ExecutiveSummary({ data, isLoading }: ExecutiveSummaryPr
                             ))}
                         </div>
                     </div>
-                    {/* <AiRecommendationsDialog domainScores={data.domain_analysis.reduce((acc, domain) => {
-                        acc[domain.domain_name] = domain.domain_score;
-                        return acc;
-                    }, {} as Record<string, number>)} /> */}
                 </CardContent>
             </Card>
         </>
