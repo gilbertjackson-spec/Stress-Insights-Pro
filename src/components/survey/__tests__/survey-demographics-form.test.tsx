@@ -41,11 +41,12 @@ describe('SurveyDemographicsForm Component', () => {
             />
         );
 
-        expect(screen.getByText('Unidade')).toBeInTheDocument();
-        expect(screen.getByText('Setor')).toBeInTheDocument();
-        expect(screen.getByText('Cargo')).toBeInTheDocument();
-        expect(screen.getByText('Faixa Etária')).toBeInTheDocument();
-        expect(screen.getByText('Gênero')).toBeInTheDocument();
+        expect(screen.getByLabelText('Unidade')).toBeInTheDocument();
+        expect(screen.getByLabelText('Setor')).toBeInTheDocument();
+        // Use exact label match to avoid ambiguity
+        expect(screen.getByLabelText(/^Cargo$/)).toBeInTheDocument();
+        expect(screen.getByLabelText('Faixa Etária')).toBeInTheDocument();
+        expect(screen.getByLabelText('Gênero')).toBeInTheDocument();
     });
 
     it('should show loading state', () => {
@@ -78,7 +79,7 @@ describe('SurveyDemographicsForm Component', () => {
                 selectedUnit=""
             />
         );
-
+        
         const sectorSelect = screen.getByRole('combobox', { name: 'Setor' });
         expect(sectorSelect).toBeDisabled();
 
@@ -128,7 +129,7 @@ describe('SurveyDemographicsForm Component', () => {
                 onSubmit={mockOnSubmit}
                 isLoadingUnits={false} isLoadingSectors={false} isLoadingPositions={true}
                 units={mockUnits} sectors={mockSectors} positions={[]}
-                onUnitChange={mockOnSectorChange} onSectorChange={mockOnSectorChange}
+                onUnitChange={mockOnUnitChange} onSectorChange={mockOnSectorChange}
                 selectedUnit="unit-1"
             />
         );
@@ -152,10 +153,12 @@ describe('SurveyDemographicsForm Component', () => {
         );
     
         // 5. Select Position
+        // Use exact name match to avoid ambiguity with "Tempo no Cargo Atual"
+        const cargoSelect = screen.getByRole('combobox', { name: /^Cargo$/i });
         await waitFor(() => {
-            expect(screen.getByRole('combobox', { name: 'Cargo' })).not.toBeDisabled();
+            expect(cargoSelect).not.toBeDisabled();
         });
-        await user.click(screen.getByRole('combobox', { name: 'Cargo' }));
+        await user.click(cargoSelect);
         await user.click(await screen.findByRole('option', { name: 'Cargo Delta' }));
     
         // 6. Submit

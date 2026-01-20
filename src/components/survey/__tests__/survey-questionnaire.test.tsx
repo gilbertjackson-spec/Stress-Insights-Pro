@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import React from 'react';
 import { render, screen, userEvent, waitFor } from '@/test/utils';
 import SurveyQuestionnaire from '../survey-questionnaire';
 import { useDoc, useCollection, useFirestore } from '@/firebase';
@@ -18,6 +19,33 @@ vi.mock('@/firebase', async (importOriginal) => {
     };
 });
 
+// Mock the carousel component to prevent it from crashing in JSDOM
+vi.mock('@/components/ui/carousel', () => ({
+    Carousel: ({ children, setApi }: any) => {
+        React.useEffect(() => {
+            if (setApi) {
+                setApi({
+                    scrollSnapList: () => [0, 1], // Mock having 2 slides
+                    selectedScrollSnap: () => 0,
+                    on: (event: string, callback: () => void) => {
+                        // Immediately call select to set initial state
+                        if(event === 'select') callback();
+                    },
+                    off: vi.fn(),
+                    scrollPrev: vi.fn(),
+                    scrollNext: vi.fn(),
+                });
+            }
+        }, [setApi]);
+        return <div data-testid="carousel-mock">{children}</div>;
+    },
+    CarouselContent: ({ children }: any) => <div data-testid="carousel-content-mock">{children}</div>,
+    CarouselItem: ({ children }: any) => <div data-testid="carousel-item-mock">{children}</div>,
+    // Provide simple button mocks for navigation
+    CarouselNext: ({ onClick }: { onClick: () => void }) => <button onClick={onClick}>Próximo</button>,
+    CarouselPrevious: ({ onClick }: { onClick: () => void }) => <button onClick={onClick}>Anterior</button>,
+}));
+
 const mockTemplate: Omit<SurveyTemplate, 'domains'> = { id: 't1', name: 'Test Questionnaire' };
 const mockDomains: Domain[] = [
     { id: 'd1', name: 'Domain 1', templateId: 't1', questions: [], benchmarkPrivateSector: 3, percentile25: 2.5, percentile75: 4, textResultLow: '', textResultMedium: '', textResultHigh: '', descriptionText: '' },
@@ -33,7 +61,7 @@ describe('SurveyQuestionnaire Component', () => {
     let getDocs: any, collection: any;
 
     beforeEach(async () => {
-        // Dynamically import inside async context
+        // This is a dynamic import to get the mocked functions from setup.ts
         const firestore = await import('firebase/firestore');
         getDocs = firestore.getDocs;
         collection = firestore.collection;
@@ -43,7 +71,7 @@ describe('SurveyQuestionnaire Component', () => {
         (useCollection as any).mockReturnValue({ data: mockDomains, isLoading: false });
 
         (getDocs as any).mockImplementation((query: any) => {
-            const pathParts = query.path.split('/');
+            const pathParts = (query.path || '').split('/');
             const domainId = pathParts[3];
             return Promise.resolve({
                 docs: (mockQuestions[domainId] || []).map(q => ({ id: q.id, data: () => q })),
@@ -81,6 +109,7 @@ describe('SurveyQuestionnaire Component', () => {
 
         await screen.findByText('Domain 1');
         
+        // This button now comes from our mock, find by text
         await user.click(screen.getByRole('button', { name: /próximo/i }));
         
         await waitFor(async () => {
